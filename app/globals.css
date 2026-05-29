@@ -1,0 +1,94 @@
+@import "tailwindcss";
+
+/*
+  CRM Squad Five — Design tokens (dark mode-first, militar/jungle).
+  Referencia: docs/03_SISTEMA_DESIGN.md
+*/
+@theme {
+  /* Paleta primaria */
+  --color-combat: #1a1816;
+  --color-jungle: #2f4a2c;
+  --color-copper: #a85a3a;
+
+  /* Paleta secundaria */
+  --color-patrol: #4a6b45;
+  --color-bronze: #d78a5c;
+  --color-tactical: #3d3a35;
+
+  /* Status */
+  --color-casualty: #c84a4a;
+
+  /* Texto */
+  --color-cream: #e8e5d8;
+  --color-cream-muted: #c9c1ae;
+  --color-cream-dim: #8a8378;
+
+  /* Cores auxiliares */
+  --color-card-raised: #25221f;
+  --color-divider: #2a2724;
+  --color-disabled: #5f5c55;
+  --color-label-muted: #6b665d;
+
+  /* Fontes — vinculadas as variaveis geradas por next/font no layout */
+  --font-display: var(--font-oswald), Impact, "Bebas Neue", "Arial Narrow", sans-serif;
+  --font-sans: var(--font-inter), system-ui, -apple-system, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), "Roboto Mono", monospace;
+
+  /* Radii */
+  --radius-pill: 4px;
+  --radius-card: 8px;
+  --radius-input: 6px;
+}
+
+html {
+  background: var(--color-combat);
+  color: var(--color-cream);
+}
+
+body {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Selecao com identidade de brand */
+::selection {
+  background: var(--color-copper);
+  color: var(--color-combat);
+}
+
+/* Foco visivel (acessibilidade — anel cobre 2px) */
+*:focus-visible {
+  outline: 2px solid rgba(168, 90, 58, 0.4);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* Reduced motion: respeitar preferencia do sistema */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Pulse sutil para status indicators criticos */
+@keyframes pulse-status {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}
+
+.animate-pulse-status {
+  animation: pulse-status 1.5s ease-in-out infinite;
+}
