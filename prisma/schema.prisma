@@ -1,0 +1,301 @@
+// Schema do CRM Squad Five.
+// Referencia: docs/01_ESBOCO_PROJETO_V2.md secao 9.
+//
+// Convencoes:
+// - Modelos em ingles (User, Recruit, Operation...) com @@map para snake_case no banco.
+// - Enums em UPPER_SNAKE refletindo o lexico militar (EM_CAMPO, BAIXA_IMINENTE).
+// - PrismaAdapter (Auth.js v5) exige tabelas Account, Session e VerificationToken.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ============================================================
+// AUTH.JS — tabelas exigidas pelo PrismaAdapter
+// ============================================================
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String  @map("user_id")
+  type              String
+  provider          String
+  providerAccountId String  @map("provider_account_id")
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique @map("session_token")
+  userId       String   @map("user_id")
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+// ============================================================
+// DOMINIO — entidades de negocio
+// ============================================================
+
+enum UserRole {
+  ADMIN
+  OPERATOR
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime? @map("email_verified")
+  image         String?   @map("avatar_url")
+  role          UserRole  @default(OPERATOR)
+  createdAt     DateTime  @default(now()) @map("created_at")
+
+  accounts         Account[]
+  sessions         Session[]
+  ownedOperations  Operation[]    @relation("OperationOwner")
+  assignedOrders   Order[]        @relation("OrderAssignee")
+  createdBriefings Briefing[]     @relation("BriefingAuthor")
+  createdGaps      Gap[]          @relation("GapAuthor")
+  notifications    Notification[]
+
+  @@map("users")
+}
+
+enum RecruitStatus {
+  ATIVO
+  PAUSADO
+  BAIXA
+}
+
+model Recruit {
+  id             String        @id @default(cuid())
+  name           String
+  contactName    String?       @map("contact_name")
+  contactEmail   String?       @map("contact_email")
+  contactPhone   String?       @map("contact_phone")
+  segment        String?
+  campaignBudget Decimal?      @map("campaign_budget") @db.Decimal(12, 2)
+  accesses       Json?
+  theses         String?       @db.Text
+  notes          String?       @db.Text
+  status         RecruitStatus @default(ATIVO)
+  createdAt      DateTime      @default(now()) @map("created_at")
+
+  operations Operation[]
+
+  @@map("recruits")
+}
+
+enum ProductArchetype {
+  PROJECT
+  RETAINER
+}
+
+model Product {
+  id                  String           @id @default(cuid())
+  name                String
+  archetype           ProductArchetype
+  typicalDurationDays Int?             @map("typical_duration_days")
+  active              Boolean          @default(true)
+
+  stageTemplates StageTemplate[]
+  operations     Operation[]
+
+  @@map("products")
+}
+
+model StageTemplate {
+  id        String @id @default(cuid())
+  productId String @map("product_id")
+  name      String
+  order     Int
+  slaDays   Int    @map("sla_days")
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, order])
+  @@map("stage_templates")
+}
+
+enum OperationStatus {
+  ATIVA
+  PAUSADA
+  ENCERRADA
+}
+
+model Operation {
+  id          String          @id @default(cuid())
+  recruitId   String          @map("recruit_id")
+  productId   String          @map("product_id")
+  codeName    String          @map("code_name")
+  ownerId     String?         @map("owner_id")
+  status      OperationStatus @default(ATIVA)
+  startedAt   DateTime        @default(now()) @map("started_at")
+  targetEndAt DateTime?       @map("target_end_at")
+  endedAt     DateTime?       @map("ended_at")
+
+  recruit   Recruit          @relation(fields: [recruitId], references: [id])
+  product   Product          @relation(fields: [productId], references: [id])
+  owner     User?            @relation("OperationOwner", fields: [ownerId], references: [id])
+  stages    OperationStage[]
+  briefings Briefing[]
+  gaps      Gap[]
+
+  @@map("operations")
+}
+
+enum StageStatus {
+  PENDENTE
+  EM_ANDAMENTO
+  CUMPRIDA
+}
+
+model OperationStage {
+  id          String      @id @default(cuid())
+  operationId String      @map("operation_id")
+  templateId  String?     @map("template_id")
+  name        String
+  order       Int
+  slaDays     Int         @map("sla_days")
+  status      StageStatus @default(PENDENTE)
+  startedAt   DateTime?   @map("started_at")
+  completedAt DateTime?   @map("completed_at")
+
+  operation Operation @relation(fields: [operationId], references: [id], onDelete: Cascade)
+  orders    Order[]
+
+  @@unique([operationId, order])
+  @@map("operation_stages")
+}
+
+enum OrderStatus {
+  A_FAZER
+  EM_ANDAMENTO
+  CUMPRIDA
+}
+
+model Order {
+  id               String      @id @default(cuid())
+  operationStageId String?     @map("operation_stage_id")
+  squadTask        Boolean     @default(false) @map("squad_task")
+  title            String
+  description      String?     @db.Text
+  assigneeId       String?     @map("assignee_id")
+  externalAssignee String?     @map("external_assignee")
+  status           OrderStatus @default(A_FAZER)
+  dueDate          DateTime?   @map("due_date") @db.Date
+  recurring        Json?
+  completedAt      DateTime?   @map("completed_at")
+  createdAt        DateTime    @default(now()) @map("created_at")
+
+  stage    OperationStage? @relation(fields: [operationStageId], references: [id], onDelete: SetNull)
+  assignee User?           @relation("OrderAssignee", fields: [assigneeId], references: [id])
+
+  @@index([assigneeId, status])
+  @@index([dueDate])
+  @@map("orders")
+}
+
+model Briefing {
+  id          String   @id @default(cuid())
+  operationId String   @map("operation_id")
+  date        DateTime
+  durationMin Int?     @map("duration_min")
+  attendees   Json?
+  notes       String?  @db.Text
+  npsScore    Int?     @map("nps_score")
+  createdById String?  @map("created_by")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  operation Operation @relation(fields: [operationId], references: [id], onDelete: Cascade)
+  createdBy User?     @relation("BriefingAuthor", fields: [createdById], references: [id])
+
+  @@index([operationId, date])
+  @@map("briefings")
+}
+
+enum GapSource {
+  AUTOMATIC
+  MANUAL
+}
+
+enum GapType {
+  TASK_OVERDUE
+  STAGE_SLA
+  NO_BRIEFING
+  APPROVAL_PENDING
+  MANUAL
+}
+
+enum GapStatus {
+  ABERTO
+  EM_TRATAMENTO
+  RESOLVIDO
+}
+
+model Gap {
+  id          String    @id @default(cuid())
+  operationId String    @map("operation_id")
+  source      GapSource
+  type        GapType
+  description String
+  status      GapStatus @default(ABERTO)
+  createdById String?   @map("created_by")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  resolvedAt  DateTime? @map("resolved_at")
+
+  operation Operation @relation(fields: [operationId], references: [id], onDelete: Cascade)
+  createdBy User?     @relation("GapAuthor", fields: [createdById], references: [id])
+
+  @@index([operationId, status])
+  @@map("gaps")
+}
+
+enum NotificationType {
+  ORDER_DUE
+  ORDER_ASSIGNED
+  OPERATION_RISK
+  BRIEFING_SOON
+  GAP_OPEN
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String           @map("user_id")
+  type      NotificationType
+  payload   Json
+  read      Boolean          @default(false)
+  createdAt DateTime         @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, read, createdAt])
+  @@map("notifications")
+}

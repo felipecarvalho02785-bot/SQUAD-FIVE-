@@ -1,3 +1,4 @@
+import { auth } from "@/lib/auth";
 import { KPICard } from "@/components/ui/kpi-card";
 import { StatusPill } from "@/components/ui/status-pill";
 import { getGreeting } from "@/lib/greeting";
@@ -12,10 +13,10 @@ export const metadata = {
   title: "Comando Central — Squad Five",
 };
 
-export default function ComandoCentralPage() {
-  // Placeholder enquanto Auth.js nao esta plugado.
-  const userName = "Comandante";
-  const { salute, callToBriefing } = getGreeting(userName);
+export default async function ComandoCentralPage() {
+  const session = await auth();
+  const firstName = session?.user?.name?.split(" ")[0] ?? "Comandante";
+  const { salute, callToBriefing } = getGreeting(firstName);
 
   return (
     <main className="max-w-[1280px] mx-auto w-full flex flex-col gap-6">

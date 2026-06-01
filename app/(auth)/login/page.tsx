@@ -1,4 +1,5 @@
 import { IconShield, IconBrandGoogleFilled } from "@tabler/icons-react";
+import { signIn } from "@/lib/auth";
 
 /*
   Tela de acesso (login).
@@ -9,6 +10,11 @@ import { IconShield, IconBrandGoogleFilled } from "@tabler/icons-react";
 export const metadata = {
   title: "Acesso — Squad Five",
 };
+
+async function loginWithGoogle() {
+  "use server";
+  await signIn("google", { redirectTo: "/comando" });
+}
 
 export default function LoginPage() {
   return (
@@ -26,13 +32,15 @@ export default function LoginPage() {
           </p>
         </div>
 
-        <button
-          type="button"
-          className="w-full h-11 rounded-input bg-copper text-combat font-display uppercase tracking-[0.05em] text-[13px] font-medium flex items-center justify-center gap-2 hover:bg-bronze active:scale-[0.98] transition-all"
-        >
-          <IconBrandGoogleFilled size={16} stroke={1.5} />
-          Entrar com e-mail da E3
-        </button>
+        <form action={loginWithGoogle} className="w-full">
+          <button
+            type="submit"
+            className="w-full h-11 rounded-input bg-copper text-combat font-display uppercase tracking-[0.05em] text-[13px] font-medium flex items-center justify-center gap-2 hover:bg-bronze active:scale-[0.98] transition-all"
+          >
+            <IconBrandGoogleFilled size={16} stroke={1.5} />
+            Entrar com e-mail da E3
+          </button>
+        </form>
 
         <p className="font-display uppercase tracking-[0.15em] text-[10px] text-cream-dim">
           Sistema operacional · Squad 5
