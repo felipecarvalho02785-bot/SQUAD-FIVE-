@@ -1,19 +1,23 @@
-import { OperationStatus, RecruitStatus } from "@prisma/client";
+import { GapStatus, OperationStatus, RecruitStatus } from "@prisma/client";
 import { prisma } from "@/lib/db/prisma";
 import { listOperations, countOperationHealth } from "./operation";
 import { countRecruitsByStatus } from "./recruit";
+import { detectAllGaps } from "@/lib/domain/gap-detector";
 
 /*
   Dashboard — aggregator queries pro Comando Central.
 */
 
 export async function getDashboardSnapshot() {
+  await detectAllGaps();
   const [
     healthCounts,
     recruitCounts,
     operations,
     productsWithCounts,
     upcomingBriefings,
+    openGapsCount,
+    criticalGapsCount,
   ] = await Promise.all([
     countOperationHealth(),
     countRecruitsByStatus(),
@@ -39,6 +43,13 @@ export async function getDashboardSnapshot() {
         date: true,
         durationMin: true,
         operation: { select: { codeName: true, recruit: { select: { name: true } } } },
+      },
+    }),
+    prisma.gap.count({ where: { status: { not: GapStatus.RESOLVIDO } } }),
+    prisma.gap.count({
+      where: {
+        status: { not: GapStatus.RESOLVIDO },
+        type: { in: ["TASK_OVERDUE", "STAGE_SLA"] },
       },
     }),
   ]);
@@ -144,8 +155,8 @@ export async function getDashboardSnapshot() {
       clientesAtivos: recruitCounts.ATIVO,
       tasksMedia: entregasMedia,
       entregasMedia: entregasMedia,
-      gapsAbertos: 0,
-      gapsCriticos: 0,
+      gapsAbertos: openGapsCount,
+      gapsCriticos: criticalGapsCount,
     },
     saudeMedia,
     topOperacoes: topOps,
