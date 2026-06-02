@@ -1,14 +1,116 @@
-import { ComingSoon } from "@/components/squad/coming-soon";
+import Link from "next/link";
+import { IconUserPlus } from "@tabler/icons-react";
+import { RecruitStatus } from "@prisma/client";
+import { PageHeader } from "@/components/squad/page-header";
+import { buttonVariants } from "@/components/ui/button";
+import { RecruitListCard } from "@/components/recruta/recruit-list-card";
+import { RecruitFilters } from "@/components/recruta/recruit-filters";
+import { listRecruits, countRecruitsByStatus } from "@/lib/queries/recruit";
+import { recruitFilterSchema } from "@/lib/schemas/recruit";
 
-export const metadata = { title: "Recrutas — Squad Five" };
+export const metadata = {
+  title: "Recrutas — Squad Five",
+};
 
-export default function RecrutasPage() {
+export const dynamic = "force-dynamic";
+
+type SearchParams = Promise<Record<string, string | string[] | undefined>>;
+
+function asString(value: string | string[] | undefined): string {
+  if (Array.isArray(value)) return value[0] ?? "";
+  return value ?? "";
+}
+
+export default async function RecrutasPage({
+  searchParams,
+}: {
+  searchParams: SearchParams;
+}) {
+  const params = await searchParams;
+  const parsed = recruitFilterSchema.safeParse({
+    q: asString(params.q),
+    status: asString(params.status) || "all",
+  });
+  const filter = parsed.success
+    ? parsed.data
+    : { q: undefined, status: "all" as const };
+
+  const [recrutas, counts] = await Promise.all([
+    listRecruits(filter),
+    countRecruitsByStatus(),
+  ]);
+
+  const heading =
+    counts.total === 0
+      ? "Nenhum recruta no radar."
+      : counts.total === 1
+        ? "1 recruta no radar."
+        : `${counts.total} recrutas no radar.`;
+  const subtitle =
+    counts.total > 0
+      ? `${counts.ATIVO} ativo${counts.ATIVO === 1 ? "" : "s"} · ${counts.PAUSADO} pausado${counts.PAUSADO === 1 ? "" : "s"} · ${counts.BAIXA} baixa${counts.BAIXA === 1 ? "" : "s"}`
+      : "Bora alistar o primeiro recruta do squad?";
+
   return (
-    <ComingSoon
-      title="Recrutas"
-      subtitle="Cadastro e ficha única dos clientes do squad."
-      sprint="Sprint 3"
-      description="Lista de recrutas com filtros, ficha única com histórico de operações, criação e edição. Bora alistar o primeiro recruta?"
-    />
+    <div className="flex flex-col gap-5">
+      <PageHeader
+        title={heading}
+        subtitle={subtitle}
+        actions={
+          <Link
+            href="/recrutas/novo"
+            className={buttonVariants({ variant: "primary", size: "md" })}
+          >
+            <IconUserPlus size={14} aria-hidden />
+            Recrutar novo
+          </Link>
+        }
+      />
+
+      <RecruitFilters
+        query={filter.q ?? ""}
+        status={filter.status as RecruitStatus | "all"}
+      />
+
+      {recrutas.length === 0 ? (
+        <section className="surface-raised p-10 flex flex-col items-center text-center gap-4">
+          <div className="w-14 h-14 rounded-full bg-surface-accent border border-border-strong flex items-center justify-center">
+            <IconUserPlus
+              size={26}
+              stroke={1.5}
+              className="text-bronze"
+              aria-hidden
+            />
+          </div>
+          <div className="flex flex-col gap-2 max-w-md">
+            <h2 className="font-display text-[20px] font-medium leading-tight text-text-primary">
+              {counts.total === 0
+                ? "Nenhum recruta no radar."
+                : "Nenhum recruta nesse filtro."}
+            </h2>
+            <p className="text-text-secondary text-[13px]">
+              {counts.total === 0
+                ? "Bora alistar o primeiro? Recrutas viram operações, briefings e ordens — toda a jornada começa aqui."
+                : "Ajuste a busca ou o filtro de status para encontrar quem você procura."}
+            </p>
+          </div>
+          <Link
+            href="/recrutas/novo"
+            className={buttonVariants({ variant: "primary", size: "md" })}
+          >
+            <IconUserPlus size={14} aria-hidden />
+            Recrutar novo
+          </Link>
+        </section>
+      ) : (
+        <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          {recrutas.map((recruit) => (
+            <li key={recruit.id}>
+              <RecruitListCard recruit={recruit} />
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
   );
 }
