@@ -5,6 +5,7 @@ import {
   IconEdit,
   IconArrowLeft,
   IconTarget,
+  IconTargetArrow,
 } from "@tabler/icons-react";
 import { PageHeader } from "@/components/squad/page-header";
 import { FeedbackBanner } from "@/components/squad/feedback-banner";
@@ -101,12 +102,21 @@ export default async function RecrutaDetalhePage({
               status={STATUS_PILL[recruit.status]}
               label={STATUS_LABEL[recruit.status]}
             />
+            {recruit.status !== "BAIXA" ? (
+              <Link
+                href={`/operacoes/nova?recruitId=${recruit.id}`}
+                className={buttonVariants({ variant: "primary", size: "md" })}
+              >
+                <IconTargetArrow size={14} aria-hidden />
+                Mobilizar
+              </Link>
+            ) : null}
             <Link
               href={`/recrutas/${recruit.id}/editar`}
               className={buttonVariants({ variant: "secondary", size: "md" })}
             >
               <IconEdit size={14} aria-hidden />
-              Editar ficha
+              Editar
             </Link>
           </div>
         }
@@ -175,25 +185,40 @@ export default async function RecrutaDetalhePage({
             </header>
 
             {recruit.operations.length === 0 ? (
-              <p className="py-6 text-center text-text-secondary text-[13px]">
-                Nenhuma operação registrada. Mobilizar operações chega na
-                próxima sprint.
-              </p>
+              <div className="py-6 flex flex-col items-center gap-3 text-center">
+                <p className="text-text-secondary text-[13px]">
+                  Nenhuma operação registrada nesta ficha.
+                </p>
+                {recruit.status !== "BAIXA" ? (
+                  <Link
+                    href={`/operacoes/nova?recruitId=${recruit.id}`}
+                    className={buttonVariants({
+                      variant: "primary",
+                      size: "md",
+                    })}
+                  >
+                    <IconTargetArrow size={14} aria-hidden />
+                    Mobilizar primeira operação
+                  </Link>
+                ) : null}
+              </div>
             ) : (
               <ul className="flex flex-col gap-2">
                 {recruit.operations.map((op) => (
-                  <li
-                    key={op.id}
-                    className="flex items-center justify-between gap-3 p-3 rounded-card bg-surface-deep border border-border-default/60"
-                  >
-                    <div className="flex flex-col gap-0.5 min-w-0">
-                      <span className="text-text-primary text-[13px] truncate">
-                        {op.codeName}
-                      </span>
-                      <span className="text-text-dim text-[11px]">
-                        {op.product.name} · {op.status.toLowerCase()}
-                      </span>
-                    </div>
+                  <li key={op.id}>
+                    <Link
+                      href={`/operacoes/${op.id}`}
+                      className="flex items-center justify-between gap-3 p-3 rounded-card bg-surface-deep border border-border-default/60 hover:border-border-strong transition-colors group"
+                    >
+                      <div className="flex flex-col gap-0.5 min-w-0">
+                        <span className="text-text-primary text-[13px] truncate group-hover:text-accent-hover transition-colors">
+                          {op.codeName}
+                        </span>
+                        <span className="text-text-dim text-[11px]">
+                          {op.product.name} · {op.status.toLowerCase()}
+                        </span>
+                      </div>
+                    </Link>
                   </li>
                 ))}
               </ul>

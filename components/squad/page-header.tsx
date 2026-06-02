@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 
 interface PageHeaderProps {
   title: string;
-  subtitle?: string;
+  subtitle?: React.ReactNode;
   updatedAt?: Date;
   live?: boolean;
   actions?: React.ReactNode;
