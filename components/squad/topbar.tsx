@@ -103,6 +103,10 @@ export function Topbar({
         ? { count: navCounts.briefings, tone: "default" }
         : undefined,
     },
+    {
+      href: "/squad-tasks",
+      label: "Squad",
+    },
     ...(isAdmin
       ? ([{ href: "/quartel", label: "Quartel" }] satisfies NavItem[])
       : []),
