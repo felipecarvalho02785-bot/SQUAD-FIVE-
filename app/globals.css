@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 /*
-  CRM Squad Five — Design tokens (dark mode-first, militar/jungle).
+  CRM Squad Five — Design tokens v2 (Sprint 1.5).
   Referencia: docs/03_SISTEMA_DESIGN.md
 */
 @theme {
@@ -17,19 +17,28 @@
 
   /* Status */
   --color-casualty: #c84a4a;
+  --color-casualty-deep: #6b1f1f;
 
   /* Texto */
   --color-cream: #e8e5d8;
   --color-cream-muted: #c9c1ae;
   --color-cream-dim: #8a8378;
 
-  /* Cores auxiliares */
+  /* Cores auxiliares — niveis de elevacao */
   --color-card-raised: #25221f;
+  --color-card-deep: #1f1c1a;
+  --color-card-glow: #2f2823;
   --color-divider: #2a2724;
   --color-disabled: #5f5c55;
   --color-label-muted: #6b665d;
 
-  /* Fontes — vinculadas as variaveis geradas por next/font no layout */
+  /* Acentos sutis para gradientes */
+  --color-jungle-deep: #1f3320;
+  --color-jungle-glow: #3d6038;
+  --color-copper-deep: #5a2e1d;
+  --color-bronze-glow: #f0a574;
+
+  /* Fontes */
   --font-display: var(--font-oswald), Impact, "Bebas Neue", "Arial Narrow", sans-serif;
   --font-sans: var(--font-inter), system-ui, -apple-system, sans-serif;
   --font-mono: var(--font-jetbrains-mono), "Roboto Mono", monospace;
@@ -37,12 +46,18 @@
   /* Radii */
   --radius-pill: 4px;
   --radius-card: 8px;
+  --radius-card-lg: 12px;
   --radius-input: 6px;
 }
+
+/* ============================================================
+   BASE
+   ============================================================ */
 
 html {
   background: var(--color-combat);
   color: var(--color-cream);
+  color-scheme: dark;
 }
 
 body {
@@ -51,22 +66,119 @@ body {
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+  /*
+    Textura de camuflagem digital Tier 3 — SVG noise + grain.
+    Opacidade ~4% para nao competir com leitura.
+  */
+  background-color: var(--color-combat);
+  background-image:
+    radial-gradient(at 18% 12%, rgba(47, 74, 44, 0.18) 0px, transparent 55%),
+    radial-gradient(at 82% 88%, rgba(168, 90, 58, 0.08) 0px, transparent 50%),
+    radial-gradient(at 50% 50%, rgba(47, 74, 44, 0.05) 0px, transparent 75%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180' viewBox='0 0 180 180'%3E%3Cg fill-rule='evenodd' opacity='0.4'%3E%3Cpath fill='%232f4a2c' d='M0 0h60v60H0zM120 0h60v60h-60zM60 60h60v60H60zM0 120h60v60H0zM120 120h60v60h-60z' opacity='0.06'/%3E%3Cpath fill='%23a85a3a' d='M60 0h60v60H60zM0 60h60v60H0zM120 60h60v60h-60zM60 120h60v60H60z' opacity='0.025'/%3E%3C/g%3E%3C/svg%3E");
+  background-attachment: fixed;
+  background-size: auto, auto, auto, 360px 360px;
 }
 
-/* Selecao com identidade de brand */
 ::selection {
   background: var(--color-copper);
   color: var(--color-combat);
 }
 
-/* Foco visivel (acessibilidade — anel cobre 2px) */
 *:focus-visible {
-  outline: 2px solid rgba(168, 90, 58, 0.4);
+  outline: 2px solid rgba(168, 90, 58, 0.5);
   outline-offset: 2px;
   border-radius: 2px;
 }
 
-/* Reduced motion: respeitar preferencia do sistema */
+/* Scrollbar tactical */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-tactical);
+  border-radius: 8px;
+  border: 2px solid var(--color-combat);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-copper-deep);
+}
+
+/* ============================================================
+   ANIMACOES
+   ============================================================ */
+
+/* Tier 2 — pulse de status critico */
+@keyframes pulse-status {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(0.92); }
+}
+.animate-pulse-status {
+  animation: pulse-status 1.4s ease-in-out infinite;
+}
+
+/* Tier 2 — pulse "live" (sino, indicador online) */
+@keyframes pulse-live {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(74, 107, 69, 0.6); }
+  70% { box-shadow: 0 0 0 8px rgba(74, 107, 69, 0); }
+}
+.animate-pulse-live {
+  animation: pulse-live 2s ease-in-out infinite;
+}
+
+/* Tier 2 — glow no numero KPI */
+@keyframes glow-bronze {
+  0%, 100% { text-shadow: 0 0 8px rgba(215, 138, 92, 0.15), 0 0 1px rgba(215, 138, 92, 0.3); }
+  50% { text-shadow: 0 0 14px rgba(215, 138, 92, 0.32), 0 0 2px rgba(215, 138, 92, 0.5); }
+}
+.animate-glow-bronze {
+  animation: glow-bronze 4s ease-in-out infinite;
+}
+
+/* Tier 1 — sway de folhas/elementos no login */
+@keyframes sway {
+  0%, 100% { transform: translate(0, 0) rotate(-3deg); }
+  50% { transform: translate(4px, -4px) rotate(3deg); }
+}
+.animate-sway {
+  animation: sway 8s ease-in-out infinite;
+}
+
+/* Tier 1 — drift de particulas */
+@keyframes drift-up {
+  0% { transform: translateY(20px); opacity: 0; }
+  20% { opacity: 0.6; }
+  80% { opacity: 0.3; }
+  100% { transform: translateY(-90vh); opacity: 0; }
+}
+.animate-drift-up {
+  animation: drift-up 14s linear infinite;
+}
+
+/* Tier 1 — respiracao do mascote */
+@keyframes breathe {
+  0%, 100% { transform: scale(1); filter: drop-shadow(0 0 24px rgba(168, 90, 58, 0.2)); }
+  50% { transform: scale(1.025); filter: drop-shadow(0 0 36px rgba(168, 90, 58, 0.35)); }
+}
+.animate-breathe {
+  animation: breathe 5s ease-in-out infinite;
+}
+
+/* Tier 2 — shimmer sutil em progress bars */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.animate-shimmer {
+  background-size: 200% 100%;
+  animation: shimmer 3s linear infinite;
+}
+
+/* Reduced motion: derruba tudo */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -78,17 +190,65 @@ body {
   }
 }
 
-/* Pulse sutil para status indicators criticos */
-@keyframes pulse-status {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.55;
-  }
+/* ============================================================
+   UTILITARIOS DE BRAND
+   ============================================================ */
+
+/* Card com gradient sutil + borda esculpida */
+.surface-raised {
+  background: linear-gradient(180deg, var(--color-card-glow) 0%, var(--color-card-raised) 100%);
+  border: 0.5px solid var(--color-tactical);
+  border-radius: var(--radius-card);
+  box-shadow:
+    0 1px 0 0 rgba(255, 255, 255, 0.03) inset,
+    0 0 0 0.5px rgba(0, 0, 0, 0.4);
 }
 
-.animate-pulse-status {
-  animation: pulse-status 1.5s ease-in-out infinite;
+.surface-jungle {
+  background: linear-gradient(180deg, var(--color-jungle-glow) 0%, var(--color-jungle) 60%, var(--color-jungle-deep) 100%);
+  border: 0.5px solid var(--color-patrol);
+  border-radius: var(--radius-card);
+  box-shadow:
+    0 1px 0 0 rgba(255, 255, 255, 0.04) inset,
+    0 0 0 0.5px rgba(0, 0, 0, 0.5);
+}
+
+.surface-deep {
+  background: var(--color-card-deep);
+  border: 0.5px solid var(--color-tactical);
+  border-radius: var(--radius-card);
+}
+
+/* Gradient horizontal tipico para progress bars */
+.bar-gradient-warm {
+  background: linear-gradient(90deg, var(--color-casualty) 0%, var(--color-copper) 50%, var(--color-bronze) 100%);
+}
+.bar-gradient-cool {
+  background: linear-gradient(90deg, var(--color-patrol) 0%, var(--color-jungle-glow) 100%);
+}
+
+/* Texto Oswald label uppercase padrao do design system */
+.label-display {
+  font-family: var(--font-display);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  line-height: 1;
+}
+
+/* Numero KPI grande */
+.kpi-number {
+  font-family: var(--font-display);
+  font-weight: 500;
+  line-height: 0.95;
+  color: var(--color-bronze);
+}
+
+/* Hover lift padrao Tier 2 */
+.lift-hover {
+  transition: transform 220ms ease-out, box-shadow 220ms ease-out, border-color 220ms ease-out;
+}
+.lift-hover:hover {
+  transform: translateY(-1px);
+  border-color: var(--color-patrol);
 }
