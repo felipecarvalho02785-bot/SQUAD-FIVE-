@@ -4,6 +4,7 @@ import { OperationStatus, StageStatus } from "@prisma/client";
 import {
   IconArrowLeft,
   IconCalendar,
+  IconChecklist,
   IconTarget,
   IconUser,
   IconUsersGroup,
@@ -12,9 +13,14 @@ import { PageHeader } from "@/components/squad/page-header";
 import { FeedbackBanner } from "@/components/squad/feedback-banner";
 import { StatusIndicator } from "@/components/ui/status-indicator";
 import { StatusPill } from "@/components/ui/status-pill";
+import { buttonVariants } from "@/components/ui/button";
 import { StageTimeline } from "@/components/operacao/stage-timeline";
 import { StageActions } from "@/components/operacao/stage-actions";
+import { OrderListItem } from "@/components/ordem/order-list-item";
+import { OrderForm } from "@/components/ordem/order-form";
 import { getOperationById } from "@/lib/queries/operation";
+import { listSquadMembers } from "@/lib/queries/user";
+import { createOrderAction } from "@/lib/actions/order";
 
 export const dynamic = "force-dynamic";
 
@@ -27,6 +33,9 @@ const JUST_MESSAGES: Record<string, string> = {
   paused: "Operação pausada.",
   resumed: "Operação retomada.",
   extracted: "Operação encerrada. Histórico preservado.",
+  "order-created": "Ordem cadastrada na operação.",
+  "order-deleted": "Ordem removida.",
+  "briefing-registered": "Briefing registrado.",
 };
 
 const HEALTH_PILL_MAP = {
@@ -69,9 +78,28 @@ export default async function OperacaoDetalhePage({
 }) {
   const { id } = await params;
   const sp = await searchParams;
-  const operation = await getOperationById(id);
+  const [operation, squadMembers] = await Promise.all([
+    getOperationById(id),
+    listSquadMembers(),
+  ]);
 
   if (!operation) notFound();
+
+  const redirectTo = `/operacoes/${operation.id}`;
+  const stageOptions = operation.stages.map((s) => ({
+    id: s.id,
+    label: `${s.order}. ${s.name}`,
+  }));
+  const newOrderAction = createOrderAction.bind(null, redirectTo);
+
+  const ordersByStage = operation.stages.map((stage) => ({
+    stage,
+    orders: stage.orders,
+  }));
+  const totalOrders = ordersByStage.reduce(
+    (acc, s) => acc + s.orders.length,
+    0,
+  );
 
   const justKey = Array.isArray(sp.just) ? sp.just[0] : sp.just;
   const justMessage = justKey ? JUST_MESSAGES[justKey] : undefined;
@@ -146,6 +174,67 @@ export default async function OperacaoDetalhePage({
             <StageTimeline stages={operation.stages} />
           </section>
 
+          <section className="surface-raised p-5 flex flex-col gap-4">
+            <header className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <IconChecklist
+                  size={14}
+                  className="text-bronze"
+                  stroke={1.5}
+                  aria-hidden
+                />
+                <h2 className="label-display text-[11px] text-text-secondary">
+                  Ordens por etapa
+                </h2>
+                <span className="font-mono text-[11px] text-text-dim">
+                  {totalOrders}
+                </span>
+              </div>
+            </header>
+
+            {ordersByStage.every((s) => s.orders.length === 0) ? (
+              <p className="py-4 text-center text-text-secondary text-[13px]">
+                Nenhuma ordem registrada. Crie a primeira no formulário ao lado.
+              </p>
+            ) : (
+              <div className="flex flex-col gap-4">
+                {ordersByStage.map(({ stage, orders }) =>
+                  orders.length > 0 ? (
+                    <div key={stage.id} className="flex flex-col gap-2">
+                      <h3 className="label-display text-[10px] text-text-label">
+                        {stage.order}. {stage.name}
+                      </h3>
+                      <ul className="flex flex-col gap-2">
+                        {orders.map((order) => (
+                          <li key={order.id}>
+                            <OrderListItem
+                              order={{
+                                ...order,
+                                stage: {
+                                  id: stage.id,
+                                  name: stage.name,
+                                  order: stage.order,
+                                  operation: {
+                                    id: operation.id,
+                                    codeName: operation.codeName,
+                                    recruit: operation.recruit,
+                                  },
+                                },
+                                assignee: null,
+                              }}
+                              redirectTo={redirectTo}
+                              showContext={false}
+                            />
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ) : null,
+                )}
+              </div>
+            )}
+          </section>
+
           <section className="surface-raised p-5 flex flex-col gap-3">
             <header className="flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -162,6 +251,13 @@ export default async function OperacaoDetalhePage({
                   {operation.briefings.length}
                 </span>
               </div>
+              <Link
+                href={`/briefings/novo?operationId=${operation.id}`}
+                className={buttonVariants({ variant: "ghost", size: "sm" })}
+              >
+                <IconCalendar size={12} aria-hidden />
+                Registrar
+              </Link>
             </header>
             {operation.briefings.length === 0 ? (
               <p className="py-6 text-center text-text-secondary text-[13px]">
@@ -288,6 +384,21 @@ export default async function OperacaoDetalhePage({
               isLastStage={isLastStage}
             />
           </section>
+
+          {operation.status !== OperationStatus.ENCERRADA &&
+          stageOptions.length > 0 ? (
+            <section className="surface-raised p-5 flex flex-col gap-3">
+              <h2 className="label-display text-[11px] text-text-secondary">
+                Nova ordem
+              </h2>
+              <OrderForm
+                action={newOrderAction}
+                squadMembers={squadMembers}
+                stages={stageOptions}
+                cancelHref={redirectTo}
+              />
+            </section>
+          ) : null}
         </aside>
       </div>
     </div>
