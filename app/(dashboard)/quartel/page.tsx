@@ -1,13 +1,16 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import {
   IconBuildingFortress,
   IconUsersGroup,
   IconBox,
+  IconUpload,
 } from "@tabler/icons-react";
 import { auth } from "@/lib/auth";
 import { PageHeader } from "@/components/squad/page-header";
 import { FeedbackBanner } from "@/components/squad/feedback-banner";
 import { StatusPill } from "@/components/ui/status-pill";
+import { buttonVariants } from "@/components/ui/button";
 import { StageTemplateRow } from "@/components/quartel/stage-template-row";
 import { StageTemplateCreate } from "@/components/quartel/stage-template-create";
 import { MemberRow } from "@/components/quartel/member-row";
@@ -48,6 +51,15 @@ export default async function QuartelPage({
       <PageHeader
         title="Quartel General"
         subtitle="Configurações da operação. Acesso restrito ao comando."
+        actions={
+          <Link
+            href="/quartel/importar"
+            className={buttonVariants({ variant: "secondary", size: "md" })}
+          >
+            <IconUpload size={14} aria-hidden />
+            Importar recrutas
+          </Link>
+        }
       />
 
       {justMessage ? <FeedbackBanner message={justMessage} /> : null}
