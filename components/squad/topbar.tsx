@@ -104,6 +104,10 @@ export function Topbar({
         : undefined,
     },
     {
+      href: "/biblioteca",
+      label: "Biblioteca",
+    },
+    {
       href: "/squad-tasks",
       label: "Squad",
     },

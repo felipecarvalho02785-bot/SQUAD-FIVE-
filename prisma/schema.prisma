@@ -77,13 +77,14 @@ model User {
   role          UserRole  @default(OPERATOR)
   createdAt     DateTime  @default(now()) @map("created_at")
 
-  accounts         Account[]
-  sessions         Session[]
-  ownedOperations  Operation[]    @relation("OperationOwner")
-  assignedOrders   Order[]        @relation("OrderAssignee")
-  createdBriefings Briefing[]     @relation("BriefingAuthor")
-  createdGaps      Gap[]          @relation("GapAuthor")
-  notifications    Notification[]
+  accounts            Account[]
+  sessions            Session[]
+  ownedOperations     Operation[]    @relation("OperationOwner")
+  assignedOrders      Order[]        @relation("OrderAssignee")
+  createdBriefings    Briefing[]     @relation("BriefingAuthor")
+  createdGaps         Gap[]          @relation("GapAuthor")
+  notifications       Notification[]
+  createdLibraryItems LibraryItem[]  @relation("LibraryAuthor")
 
   @@map("users")
 }
@@ -284,6 +285,34 @@ enum NotificationType {
   OPERATION_RISK
   BRIEFING_SOON
   GAP_OPEN
+}
+
+enum LibraryCategory {
+  COPY
+  ROTEIRO
+  PROMPT
+  PROCESSO
+  ANUNCIO
+  EMAIL
+  WHATSAPP
+  OUTRO
+}
+
+model LibraryItem {
+  id          String          @id @default(cuid())
+  title       String
+  category    LibraryCategory @default(OUTRO)
+  content     String          @db.Text
+  tags        String[]        @default([])
+  createdById String?         @map("created_by")
+  createdAt   DateTime        @default(now()) @map("created_at")
+  updatedAt   DateTime        @updatedAt @map("updated_at")
+
+  createdBy User? @relation("LibraryAuthor", fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@index([category])
+  @@index([createdAt])
+  @@map("library_items")
 }
 
 model Notification {
