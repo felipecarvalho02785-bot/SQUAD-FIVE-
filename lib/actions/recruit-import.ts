@@ -37,6 +37,7 @@ const HEADER_MAP: Record<string, keyof RecruitImportRow> = {
   segment: "segment",
   segmento: "segment",
   setor: "segment",
+  nicho: "segment",
   // budget
   budget: "campaignBudget",
   orcamento: "campaignBudget",
@@ -45,6 +46,7 @@ const HEADER_MAP: Record<string, keyof RecruitImportRow> = {
   // theses
   theses: "theses",
   teses: "theses",
+  melhorias: "theses",
   // notes
   notes: "notes",
   notas: "notes",
@@ -104,29 +106,66 @@ function detectSeparator(line: string): string {
   return ",";
 }
 
-function parseLine(line: string, sep: string): string[] {
-  // Suporta campos entre aspas com vírgulas dentro.
-  const out: string[] = [];
+/*
+  Tokenizer CSV stateful — processa a string inteira char-a-char,
+  trackeando estado de aspas mesmo entre linhas (RFC 4180).
+  Retorna array de linhas, cada linha é array de campos.
+*/
+function tokenizeCsv(csv: string, sep: string): string[][] {
+  const rows: string[][] = [];
+  let row: string[] = [];
   let cur = "";
   let inQuotes = false;
-  for (let i = 0; i < line.length; i++) {
-    const ch = line[i];
-    if (ch === '"') {
-      if (inQuotes && line[i + 1] === '"') {
-        cur += '"';
-        i++;
+
+  for (let i = 0; i < csv.length; i++) {
+    const ch = csv[i];
+
+    if (inQuotes) {
+      if (ch === '"') {
+        if (csv[i + 1] === '"') {
+          cur += '"';
+          i++;
+        } else {
+          inQuotes = false;
+        }
       } else {
-        inQuotes = !inQuotes;
+        cur += ch;
       }
-    } else if (ch === sep && !inQuotes) {
-      out.push(cur.trim());
+      continue;
+    }
+
+    if (ch === '"') {
+      inQuotes = true;
+      continue;
+    }
+    if (ch === sep) {
+      row.push(cur.trim());
       cur = "";
-    } else {
-      cur += ch;
+      continue;
+    }
+    if (ch === "\n" || ch === "\r") {
+      // Considera fim de linha — finaliza row
+      if (ch === "\r" && csv[i + 1] === "\n") i++;
+      row.push(cur.trim());
+      // só salva linhas com algum conteúdo
+      if (row.some((c) => c.length > 0)) {
+        rows.push(row);
+      }
+      row = [];
+      cur = "";
+      continue;
+    }
+    cur += ch;
+  }
+
+  // Última linha sem newline final
+  if (cur.length > 0 || row.length > 0) {
+    row.push(cur.trim());
+    if (row.some((c) => c.length > 0)) {
+      rows.push(row);
     }
   }
-  out.push(cur.trim());
-  return out;
+  return rows;
 }
 
 function normalizeHeader(h: string): keyof RecruitImportRow | null {
@@ -137,8 +176,12 @@ function normalizeHeader(h: string): keyof RecruitImportRow | null {
 function parseStatus(value: string | undefined): RecruitStatus {
   if (!value) return RecruitStatus.ATIVO;
   const v = value.toUpperCase().trim();
-  if (v === "PAUSADO" || v === "PAUSADA") return RecruitStatus.PAUSADO;
-  if (v === "BAIXA" || v === "ENCERRADO") return RecruitStatus.BAIXA;
+  // Aliases EN (sistemas antigos)
+  if (v === "ACTIVE") return RecruitStatus.ATIVO;
+  if (v === "PAUSED" || v === "PAUSADA" || v === "PAUSADO")
+    return RecruitStatus.PAUSADO;
+  if (v === "COMPLETED" || v === "CLOSED" || v === "ENCERRADO" || v === "BAIXA")
+    return RecruitStatus.BAIXA;
   return RecruitStatus.ATIVO;
 }
 
@@ -151,28 +194,39 @@ function parseBudget(value: string | undefined): number | null {
 }
 
 function buildPreview(csv: string): ImportPreviewRow[] {
-  const lines = csv
-    .split(/\r?\n/)
-    .map((l) => l.trim())
-    .filter((l) => l.length > 0);
-  if (lines.length === 0) return [];
+  if (!csv.trim()) return [];
 
-  const sep = detectSeparator(lines[0]);
-  const headersRaw = parseLine(lines[0], sep);
+  // Pega só primeira linha pra detectar separador
+  const firstLineEnd = csv.search(/\r?\n/);
+  const firstLine = firstLineEnd > 0 ? csv.slice(0, firstLineEnd) : csv;
+  const sep = detectSeparator(firstLine);
+
+  const allRows = tokenizeCsv(csv, sep);
+  if (allRows.length === 0) return [];
+
+  const headersRaw = allRows[0];
   const headerMap: Array<keyof RecruitImportRow | null> =
     headersRaw.map(normalizeHeader);
 
   const rows: ImportPreviewRow[] = [];
-  for (let i = 1; i < lines.length; i++) {
-    const cells = parseLine(lines[i], sep);
+  for (let i = 1; i < allRows.length; i++) {
+    const cells = allRows[i];
     const raw: Record<string, string> = {};
     const row: RecruitImportRow = {};
+    const notesAccum: string[] = [];
+
     headersRaw.forEach((h, idx) => {
       raw[h] = cells[idx] ?? "";
       const key = headerMap[idx];
-      if (key) {
-        const v = cells[idx]?.trim() ?? "";
-        if (v.length > 0) row[key] = v;
+      const v = (cells[idx] ?? "").trim();
+      if (key && v.length > 0) {
+        // Para `notes`, concatena observações + melhorias (se ambas existem)
+        if (key === "notes" && row.notes) {
+          notesAccum.push(row.notes, v);
+          row.notes = notesAccum.join("\n\n");
+        } else {
+          row[key] = v;
+        }
       }
     });
 
@@ -180,7 +234,10 @@ function buildPreview(csv: string): ImportPreviewRow[] {
     if (!row.name || row.name.length < 2) {
       errors.push("Nome ausente ou muito curto");
     }
-    if (row.contactEmail && !row.contactEmail.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+    if (
+      row.contactEmail &&
+      !row.contactEmail.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)
+    ) {
       errors.push("E-mail inválido");
     }
     const budget = parseBudget(row.campaignBudget);
