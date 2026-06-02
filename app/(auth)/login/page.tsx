@@ -25,7 +25,7 @@ export default function LoginPage() {
 
       <div className="relative z-10 w-full max-w-sm flex flex-col items-center gap-10 text-center">
         <div className="flex flex-col items-center gap-5">
-          <Mascot size={120} useAsset={false} breathing priority />
+          <Mascot size={120} useAsset={true} breathing priority />
 
           <div className="flex flex-col items-center gap-2">
             <span className="font-display uppercase tracking-[0.4em] text-[10px] text-bronze">

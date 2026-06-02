@@ -114,7 +114,7 @@ export function Topbar({
         className="flex items-center gap-2.5 shrink-0 group"
         aria-label="Comando Central"
       >
-        <Mascot size={32} useAsset={false} />
+        <Mascot size={32} useAsset={true} />
         <div className="hidden sm:flex flex-col leading-none">
           <span className="font-display uppercase tracking-[0.1em] text-[14px] font-medium text-cream group-hover:text-bronze transition-colors">
             SQUAD <span className="text-copper">5</span>

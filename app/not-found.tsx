@@ -18,7 +18,7 @@ export default function NotFoundPage() {
       <AmbientLayer particles={6} intensity="subtle" />
 
       <div className="relative z-10 w-full max-w-md flex flex-col items-center gap-8 text-center">
-        <Mascot size={140} useAsset={false} breathing />
+        <Mascot size={140} useAsset={true} breathing />
 
         <div className="flex flex-col items-center gap-2">
           <span className="font-display uppercase tracking-[0.4em] text-[10px] text-bronze">
