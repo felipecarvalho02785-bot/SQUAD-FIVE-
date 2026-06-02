@@ -3,7 +3,16 @@
 -- Idempotente em nome via WHERE NOT EXISTS — pode rodar 2x sem duplicar.
 
 INSERT INTO recruits (id, name, contact_name, contact_email, contact_phone, segment, notes, status, created_at)
-SELECT *
+SELECT
+  id,
+  name,
+  contact_name,
+  contact_email,
+  contact_phone,
+  segment,
+  notes,
+  status::"RecruitStatus",
+  created_at
 FROM (VALUES
   (gen_random_uuid()::text, 'Jéssica Peixoto', NULL, NULL, NULL, NULL,
    E'Projeto iniciado em 03/02/2026. Cronograma atrasado.\n\nMelhorias: Cronograma atrasado. Mapear causa raiz e definir plano de recuperação.',
