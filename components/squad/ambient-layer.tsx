@@ -1,16 +1,17 @@
 /*
-  AmbientLayer — camada decorativa de fundo (Tier 1) usada nas telas imersivas
-  (Login, 404). Renderiza folhas balançando + partículas drifting + glow radial.
+  AmbientLayer — camada decorativa de fundo (Tier 1) usada nas telas
+  imersivas (Login, 404). Folhas balançando + partículas drifting + glow
+  radial. Posicionado absoluto, pointer-events: none.
 
-  Posicionado absoluto, pointer-events none.
+  Tokens: usa CSS vars (--color-jungle, --color-patrol, etc.) diretamente
+  em fill SVG e backgroundColor inline, alinhado com a regra de "zero
+  hex hardcoded fora do @theme".
 */
 
 import { cn } from "@/lib/utils";
 
 interface AmbientLayerProps {
-  /** Quantidade de particulas. Mais que 8 fica pesado. */
   particles?: number;
-  /** Intensidade do glow central */
   intensity?: "subtle" | "strong";
   className?: string;
 }
@@ -30,7 +31,6 @@ export function AmbientLayer({
         className,
       )}
     >
-      {/* Glow radial central */}
       <div
         className={cn(
           "absolute inset-0",
@@ -40,7 +40,6 @@ export function AmbientLayer({
         )}
       />
 
-      {/* "Folhas" balançando — formas organicas suaves */}
       <svg
         className="absolute top-[10%] left-[8%] w-32 h-32 animate-sway opacity-30"
         viewBox="0 0 100 100"
@@ -48,7 +47,7 @@ export function AmbientLayer({
       >
         <path
           d="M50 10 Q70 30 50 70 Q30 30 50 10 Z"
-          fill="#2f4a2c"
+          fill="var(--color-jungle)"
           opacity="0.6"
         />
       </svg>
@@ -61,7 +60,7 @@ export function AmbientLayer({
       >
         <path
           d="M50 10 Q75 35 50 85 Q25 35 50 10 Z"
-          fill="#4a6b45"
+          fill="var(--color-patrol)"
           opacity="0.5"
         />
       </svg>
@@ -74,12 +73,11 @@ export function AmbientLayer({
       >
         <path
           d="M50 15 Q65 40 50 75 Q35 40 50 15 Z"
-          fill="#3d6038"
+          fill="var(--color-jungle-glow)"
           opacity="0.4"
         />
       </svg>
 
-      {/* Particulas drifting */}
       {particleArray.map((i) => {
         const left = 8 + ((i * 13) % 84);
         const delay = (i * 1.6) % 14;
@@ -93,7 +91,9 @@ export function AmbientLayer({
               left: `${left}%`,
               width: `${sizePx}px`,
               height: `${sizePx}px`,
-              backgroundColor: isCopper ? "#d78a5c" : "#4a6b45",
+              backgroundColor: isCopper
+                ? "var(--color-bronze)"
+                : "var(--color-patrol)",
               animationDelay: `${delay}s`,
               opacity: 0.45,
             }}

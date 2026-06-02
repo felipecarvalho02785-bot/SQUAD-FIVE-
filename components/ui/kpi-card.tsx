@@ -4,7 +4,11 @@ import { cn } from "@/lib/utils";
 
 /*
   KPICard v2 — card de indicador com icone, glow no numero, progress bar opcional.
-  Specs base: docs/03_SISTEMA_DESIGN.md secao 5.2 (versao v2 ampliada na Sprint 1.5).
+  Specs em docs/03_SISTEMA_DESIGN.md secoes 5.2 + 5.x (Sprint 1.5).
+
+  Tokens: usa exclusivamente aliases semanticos (surface, text, border,
+  accent, status). Cores de marca raw entram via .surface-* e
+  .kpi-number (utilities globais).
 */
 
 type IconComponent = Icon | ComponentType<IconProps>;
@@ -50,7 +54,7 @@ export function KPICard({
         <span
           className={cn(
             "absolute top-3 right-3 w-7 h-7 rounded-md flex items-center justify-center",
-            "bg-combat/40 border border-tactical text-cream-muted",
+            "bg-surface-base/40 border border-border-default text-text-secondary",
           )}
           aria-hidden
         >
@@ -58,19 +62,19 @@ export function KPICard({
         </span>
       ) : null}
 
-      <span className="label-display text-[10px] text-cream-dim">{label}</span>
+      <span className="label-display text-[10px] text-text-label">{label}</span>
 
       <span
         className={cn(
           "kpi-number text-[34px] font-display animate-glow-bronze",
-          negative ? "text-casualty" : "text-bronze",
+          negative ? "text-status-critical-text" : "text-bronze",
         )}
       >
         {value}
       </span>
 
       {typeof progress === "number" ? (
-        <div className="mt-1 w-full h-1 rounded-full bg-combat/50 overflow-hidden">
+        <div className="mt-1 w-full h-1 rounded-full bg-surface-base/50 overflow-hidden">
           <div
             className={cn(
               "h-full rounded-full",
@@ -85,7 +89,7 @@ export function KPICard({
         <span
           className={cn(
             "text-[11px] mt-0.5",
-            negative ? "text-casualty/85" : "text-cream-dim",
+            negative ? "text-status-critical-text/90" : "text-text-dim",
           )}
         >
           {hint}

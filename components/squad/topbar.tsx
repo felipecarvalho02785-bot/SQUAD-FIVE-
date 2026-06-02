@@ -13,18 +13,19 @@ import { cn } from "@/lib/utils";
 
 /*
   Topbar v2 — barra superior fixa do dashboard.
-  Reescrita na Sprint 1.5 para alinhar com o nivel visual do CRM antigo
-  da E3 (vide referencia mostrada pelo usuario).
+  Tokens semanticos (surface/text/accent) e z-index via escala.
 
-  Layout:
-    [Mascote + SQUAD 5]  [Tabs nav]  [Search ⌘K] [Settings] [Bell] [Avatar] [Sair]
+  Acessibilidade:
+    - Botoes-icone tem area tocavel >=44px no mobile via min-h-11/min-w-11.
+    - aria-label em todos os botoes-icone.
+    - Reduz no mobile (<lg): so wordmark + sino + avatar (nav vai pra
+      BottomTabBar).
 */
 
 interface TopbarProps {
   userName?: string | null;
   userEmail?: string | null;
   unreadCount?: number;
-  /** Contadores para badges das tabs (futuramente vem dos dados reais) */
   navCounts?: {
     comando?: number;
     recrutas?: number;
@@ -32,7 +33,6 @@ interface TopbarProps {
     ordens?: number;
     briefings?: number;
   };
-  /** Se o usuario logado e admin, mostra o link pro Quartel General */
   isAdmin?: boolean;
 }
 
@@ -41,7 +41,10 @@ async function logoutAction() {
   await signOut({ redirectTo: "/login" });
 }
 
-function getInitials(name: string | null | undefined, email: string | null | undefined): string {
+function getInitials(
+  name: string | null | undefined,
+  email: string | null | undefined,
+): string {
   if (name && name.trim()) {
     return name
       .split(" ")
@@ -69,29 +72,35 @@ export function Topbar({
       href: "/comando",
       label: "Comando",
       badge: navCounts.comando
-        ? { count: navCounts.comando, tone: "casualty" }
+        ? { count: navCounts.comando, tone: "critical" }
         : undefined,
     },
     {
       href: "/recrutas",
       label: "Recrutas",
-      badge: navCounts.recrutas ? { count: navCounts.recrutas, tone: "copper" } : undefined,
+      badge: navCounts.recrutas
+        ? { count: navCounts.recrutas, tone: "accent" }
+        : undefined,
     },
     {
       href: "/pelotao",
       label: "Pelotão",
-      badge: navCounts.pelotao ? { count: navCounts.pelotao, tone: "tactical" } : undefined,
+      badge: navCounts.pelotao
+        ? { count: navCounts.pelotao, tone: "default" }
+        : undefined,
     },
     {
       href: "/ordens",
       label: "Ordens",
-      badge: navCounts.ordens ? { count: navCounts.ordens, tone: "copper" } : undefined,
+      badge: navCounts.ordens
+        ? { count: navCounts.ordens, tone: "accent" }
+        : undefined,
     },
     {
       href: "/briefings",
       label: "Briefings",
       badge: navCounts.briefings
-        ? { count: navCounts.briefings, tone: "tactical" }
+        ? { count: navCounts.briefings, tone: "default" }
         : undefined,
     },
     ...(isAdmin
@@ -104,22 +113,22 @@ export function Topbar({
   return (
     <header
       className={cn(
-        "h-[56px] px-4 sm:px-5 sticky top-0 z-50",
-        "bg-combat/85 backdrop-blur-md border-b border-tactical",
+        "h-[56px] px-4 sm:px-5 sticky top-0 z-sticky",
+        "bg-surface-base/85 backdrop-blur-md border-b border-border-default",
         "flex items-center justify-between gap-3",
       )}
     >
       <Link
         href="/comando"
-        className="flex items-center gap-2.5 shrink-0 group"
+        className="flex items-center gap-2.5 shrink-0 group min-h-11"
         aria-label="Comando Central"
       >
         <Mascot size={32} useAsset={true} />
         <div className="hidden sm:flex flex-col leading-none">
-          <span className="font-display uppercase tracking-[0.1em] text-[14px] font-medium text-cream group-hover:text-bronze transition-colors">
-            SQUAD <span className="text-copper">5</span>
+          <span className="font-display uppercase tracking-[0.1em] text-[14px] font-medium text-text-primary group-hover:text-accent-hover transition-colors">
+            SQUAD <span className="text-accent">5</span>
           </span>
-          <span className="text-[9px] tracking-[0.2em] uppercase text-cream-dim mt-0.5">
+          <span className="text-[9px] tracking-[0.2em] uppercase text-text-dim mt-0.5">
             E3 · Sistema Operacional
           </span>
         </div>
@@ -132,13 +141,13 @@ export function Topbar({
       <div className="flex items-center gap-1.5">
         <button
           type="button"
-          aria-label="Buscar (⌘ K)"
-          className="hidden md:flex items-center gap-2 h-9 px-3 rounded-full bg-card-deep border border-tactical text-cream-dim hover:text-cream hover:border-patrol transition-all"
+          aria-label="Buscar (Ctrl + K)"
+          className="hidden md:flex items-center gap-2 h-9 px-3 rounded-full bg-surface-deep border border-border-default text-text-dim hover:text-text-primary hover:border-border-strong transition-all"
         >
-          <IconSearch size={14} stroke={1.5} />
+          <IconSearch size={14} stroke={1.5} aria-hidden />
           <span className="text-[11px]">Buscar</span>
-          <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-combat border border-tactical text-[10px] font-mono text-cream-dim">
-            <IconCommand size={9} stroke={1.5} />K
+          <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-surface-base border border-border-default text-[10px] font-mono text-text-dim">
+            <IconCommand size={9} stroke={1.5} aria-hidden />K
           </span>
         </button>
 
@@ -146,22 +155,22 @@ export function Topbar({
           href="/quartel"
           aria-label="Configurações"
           className={cn(
-            "w-9 h-9 rounded-full flex items-center justify-center text-cream-dim hover:text-cream hover:bg-card-deep transition-colors",
+            "min-w-11 min-h-11 lg:min-w-9 lg:min-h-9 w-9 h-9 rounded-full flex items-center justify-center text-text-dim hover:text-text-primary hover:bg-surface-deep transition-colors",
             !isAdmin && "hidden",
           )}
         >
-          <IconSettings size={16} stroke={1.5} />
+          <IconSettings size={16} stroke={1.5} aria-hidden />
         </Link>
 
         <button
           type="button"
           aria-label={`Notificações${unreadCount > 0 ? ` (${unreadCount} não lidas)` : ""}`}
-          className="relative w-9 h-9 rounded-full flex items-center justify-center text-cream-dim hover:text-cream hover:bg-card-deep transition-colors"
+          className="relative min-w-11 min-h-11 lg:min-w-9 lg:min-h-9 w-9 h-9 rounded-full flex items-center justify-center text-text-dim hover:text-text-primary hover:bg-surface-deep transition-colors"
         >
-          <IconBell size={16} stroke={1.5} />
+          <IconBell size={16} stroke={1.5} aria-hidden />
           {unreadCount > 0 ? (
             <span
-              className="absolute top-1.5 right-1.5 min-w-[14px] h-[14px] px-1 rounded-full bg-casualty text-[9px] font-medium text-cream flex items-center justify-center leading-none"
+              className="absolute top-1.5 right-1.5 min-w-[14px] h-[14px] px-1 rounded-full bg-status-critical text-[9px] font-medium text-text-primary flex items-center justify-center leading-none"
               aria-hidden
             >
               {unreadCount > 9 ? "9+" : unreadCount}
@@ -170,7 +179,7 @@ export function Topbar({
         </button>
 
         <div
-          className="w-8 h-8 rounded-full bg-gradient-to-br from-copper to-jungle text-combat font-display font-medium text-[12px] tracking-[0.05em] flex items-center justify-center ring-2 ring-tactical"
+          className="w-8 h-8 rounded-full bg-gradient-to-br from-accent to-status-ok text-accent-cta-fg font-display font-medium text-[12px] tracking-[0.05em] flex items-center justify-center ring-2 ring-border-default"
           aria-label={`Logado como ${userName ?? userEmail ?? "Comandante"}`}
           title={userName ?? userEmail ?? "Comandante"}
         >
@@ -181,9 +190,9 @@ export function Topbar({
           <button
             type="submit"
             aria-label="Sair"
-            className="hidden sm:flex items-center gap-1.5 h-9 px-3 rounded-full text-cream-dim hover:text-casualty hover:bg-card-deep transition-colors"
+            className="hidden sm:flex items-center gap-1.5 h-9 px-3 rounded-full text-text-dim hover:text-status-critical-text hover:bg-surface-deep transition-colors"
           >
-            <IconLogout size={14} stroke={1.5} />
+            <IconLogout size={14} stroke={1.5} aria-hidden />
             <span className="text-[11px]">Sair</span>
           </button>
         </form>

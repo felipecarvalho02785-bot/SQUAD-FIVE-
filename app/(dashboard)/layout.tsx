@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { Topbar } from "@/components/squad/topbar";
+import { BottomTabBar } from "@/components/squad/bottom-tab-bar";
 
 export default async function DashboardLayout({
   children,
@@ -23,12 +24,13 @@ export default async function DashboardLayout({
         unreadCount={0}
         isAdmin={isAdmin}
         navCounts={{
-          // Placeholders ate os contadores reais virem do banco (Sprint 4)
+          // Placeholders ate os contadores reais virem do banco (Sprint 4).
         }}
       />
-      <main className="flex-1 px-4 sm:px-5 py-5 sm:py-6">
+      <main className="flex-1 px-4 sm:px-5 py-5 sm:py-6 pb-24 lg:pb-6">
         <div className="max-w-[1320px] mx-auto w-full">{children}</div>
       </main>
+      <BottomTabBar />
     </div>
   );
 }

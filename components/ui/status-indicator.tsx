@@ -9,6 +9,11 @@ import { cn } from "@/lib/utils";
 /*
   StatusIndicator — bolinha circular com icone interno.
   Specs em docs/03_SISTEMA_DESIGN.md secao 5.10.
+
+  Acessibilidade:
+    - Cada size >=18px traz icone interno, garantindo que o significado
+      nao depende apenas de cor (WCAG 1.4.1 e SC 1.4.11 non-text contrast
+      3:1).
 */
 
 export type IndicatorStatus =
@@ -19,12 +24,19 @@ export type IndicatorStatus =
 
 const STATUS_STYLES: Record<
   IndicatorStatus,
-  { bg: string; ring: string; pulse: boolean }
+  { bg: string; pulse: boolean }
 > = {
-  em_campo: { bg: "bg-patrol", ring: "ring-patrol/40", pulse: false },
-  atencao: { bg: "bg-bronze", ring: "ring-bronze/40", pulse: false },
-  baixa_iminente: { bg: "bg-casualty", ring: "ring-casualty/40", pulse: true },
-  extracao: { bg: "bg-tactical", ring: "ring-tactical/40", pulse: false },
+  em_campo: { bg: "bg-status-ok", pulse: false },
+  atencao: { bg: "bg-status-warn", pulse: false },
+  baixa_iminente: { bg: "bg-status-critical", pulse: true },
+  extracao: { bg: "bg-status-idle", pulse: false },
+};
+
+const STATUS_LABELS: Record<IndicatorStatus, string> = {
+  em_campo: "Em campo",
+  atencao: "Atenção",
+  baixa_iminente: "Baixa iminente",
+  extracao: "Extração",
 };
 
 interface StatusIndicatorProps {
@@ -32,6 +44,7 @@ interface StatusIndicatorProps {
   /** mini (6px sem icone) · md (18px com icone) · lg (32-38px linha do tempo) */
   size?: "mini" | "md" | "lg";
   className?: string;
+  /** Override do label de acessibilidade. Por padrao usa o nome do status em PT-BR. */
   label?: string;
 }
 
@@ -41,19 +54,19 @@ export function StatusIndicator({
   className,
   label,
 }: StatusIndicatorProps) {
-  const { bg, ring, pulse } = STATUS_STYLES[status];
+  const { bg, pulse } = STATUS_STYLES[status];
+  const ariaLabel = label ?? STATUS_LABELS[status];
 
   if (size === "mini") {
     return (
       <span
         className={cn(
-          "inline-block rounded-full ring-2 w-1.5 h-1.5",
+          "inline-block rounded-full w-1.5 h-1.5",
           bg,
-          ring,
           pulse && "animate-pulse-status",
           className,
         )}
-        aria-label={label ?? status}
+        aria-label={ariaLabel}
         role="status"
       />
     );
@@ -79,10 +92,10 @@ export function StatusIndicator({
         pulse && "animate-pulse-status",
         className,
       )}
-      aria-label={label ?? status}
+      aria-label={ariaLabel}
       role="status"
     >
-      <Icon size={iconSize} stroke={2.5} />
+      <Icon size={iconSize} stroke={2.5} aria-hidden />
     </span>
   );
 }

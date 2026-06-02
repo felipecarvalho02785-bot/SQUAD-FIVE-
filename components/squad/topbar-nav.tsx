@@ -6,16 +6,14 @@ import { cn } from "@/lib/utils";
 
 /*
   TopbarNav — navegacao principal (client) com indicacao de rota ativa
-  e badges contadores.
-
-  Recebe os contadores em prop. Quando os dados reais existirem (Sprint 4)
-  o Topbar (server) faz a query e passa pra ca.
+  e badges contadores. Desktop (>=lg) exclusivamente — no mobile a
+  navegacao primaria e o <BottomTabBar />.
 */
 
 export interface NavBadge {
   count: number;
-  /** Cor do badge — "casualty" para criticos, "copper" para acao necessaria, default "tactical" */
-  tone?: "casualty" | "copper" | "tactical";
+  /** Cor do badge — "critical" / "accent" / "default" */
+  tone?: "critical" | "accent" | "default";
 }
 
 export interface NavItem {
@@ -35,7 +33,7 @@ export function TopbarNav({ items, className }: TopbarNavProps) {
   return (
     <nav
       className={cn(
-        "flex items-center gap-1 bg-card-deep border border-tactical rounded-full px-1.5 py-1",
+        "flex items-center gap-1 bg-surface-deep border border-border-default rounded-full px-1.5 py-1",
         className,
       )}
       aria-label="Navegação principal"
@@ -51,8 +49,8 @@ export function TopbarNav({ items, className }: TopbarNavProps) {
               "relative flex items-center gap-1.5 px-3.5 py-1.5 rounded-full transition-colors",
               "font-display uppercase tracking-[0.06em] text-[12px] font-medium",
               isActive
-                ? "bg-jungle text-cream"
-                : "text-cream-muted hover:text-cream hover:bg-combat/70",
+                ? "bg-surface-accent text-text-primary"
+                : "text-text-secondary hover:text-text-primary hover:bg-surface-base/70",
             )}
             aria-current={isActive ? "page" : undefined}
           >
@@ -61,11 +59,11 @@ export function TopbarNav({ items, className }: TopbarNavProps) {
               <span
                 className={cn(
                   "min-w-[18px] h-[18px] px-1.5 rounded-full text-[10px] font-mono font-medium flex items-center justify-center leading-none",
-                  item.badge.tone === "casualty"
-                    ? "bg-casualty text-cream"
-                    : item.badge.tone === "copper"
-                      ? "bg-copper text-combat"
-                      : "bg-tactical text-cream-muted",
+                  item.badge.tone === "critical"
+                    ? "bg-status-critical text-text-primary"
+                    : item.badge.tone === "accent"
+                      ? "bg-accent text-accent-cta-fg"
+                      : "bg-border-default text-text-secondary",
                 )}
                 aria-label={`${item.badge.count} pendências`}
               >

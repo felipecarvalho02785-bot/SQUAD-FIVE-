@@ -4,6 +4,11 @@ import { cn } from "@/lib/utils";
 /*
   StatusPill — badge de status de operacao/ordem.
   Specs em docs/03_SISTEMA_DESIGN.md secao 5.5.
+
+  Acessibilidade:
+    - Toda variante tem texto explicito (nao comunica so por cor) e
+      contraste >=4.5:1. baixa_iminente usa casualty-deep como fill
+      pra permitir cream como texto (8:1+).
 */
 
 const statusPillStyles = cva(
@@ -11,13 +16,20 @@ const statusPillStyles = cva(
   {
     variants: {
       status: {
-        em_campo: "bg-jungle text-cream-muted border-patrol",
-        atencao: "bg-tactical text-bronze border-copper",
-        baixa_iminente: "bg-casualty text-[#2B0F0F] border-casualty",
-        extracao: "bg-tactical text-cream-dim border-tactical",
-        cumprida: "bg-jungle text-cream-muted border-patrol",
-        em_andamento: "bg-tactical text-bronze border-tactical",
-        a_fazer: "bg-card-raised text-cream-dim border-tactical",
+        em_campo:
+          "bg-surface-accent text-text-secondary border-border-strong",
+        atencao:
+          "bg-border-default text-bronze border-accent",
+        baixa_iminente:
+          "bg-status-critical-deep text-text-primary border-status-critical",
+        extracao:
+          "bg-border-default text-text-secondary border-border-default",
+        cumprida:
+          "bg-surface-accent text-text-secondary border-border-strong",
+        em_andamento:
+          "bg-border-default text-bronze border-border-default",
+        a_fazer:
+          "bg-surface-raised text-text-secondary border-border-default",
       },
     },
     defaultVariants: {

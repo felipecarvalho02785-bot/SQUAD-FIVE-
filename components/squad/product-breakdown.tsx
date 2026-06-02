@@ -3,13 +3,6 @@ import { cn } from "@/lib/utils";
 /*
   ProductBreakdown — micro-stats por produto/categoria usado na sidebar
   do Comando Central.
-
-  Layout:
-    Produto X
-    [N] clientes ativos
-    [SAUDÁVEIS]  [ATENÇÃO]  [CRÍTICOS]  [AVANÇARAM]
-    Tasks       X/Y · Z%
-    [Cliente em destaque com pill]
 */
 
 export interface ProductBreakdownItem {
@@ -26,7 +19,6 @@ export interface ProductBreakdownItem {
     done: number;
     total: number;
   };
-  /** Cliente em destaque (opcional) */
   highlight?: {
     name: string;
     tag: string;
@@ -53,32 +45,47 @@ export function ProductBreakdown({ items, className }: ProductBreakdownProps) {
         return (
           <li
             key={item.id}
-            className="flex flex-col gap-2 pb-4 border-b border-tactical/50 last:border-0 last:pb-0"
+            className="flex flex-col gap-2 pb-4 border-b border-border-default/50 last:border-0 last:pb-0"
           >
             <header className="flex flex-col gap-0.5">
-              <h3 className="text-cream text-[13px] font-medium leading-none">
+              <h3 className="text-text-primary text-[13px] font-medium leading-none">
                 {item.name}
               </h3>
-              <p className="text-cream-dim text-[10px]">
-                {item.activeCount} {item.activeCount === 1 ? "cliente ativo" : "clientes ativos"}
+              <p className="text-text-dim text-[10px]">
+                {item.activeCount}{" "}
+                {item.activeCount === 1 ? "cliente ativo" : "clientes ativos"}
               </p>
             </header>
 
             <div className="grid grid-cols-4 gap-1 text-center mt-1">
-              <Micro value={item.stats.saudaveis} label="Saudáveis" tone="patrol" />
-              <Micro value={item.stats.atencao} label="Atenção" tone="bronze" />
-              <Micro value={item.stats.criticos} label="Críticos" tone="casualty" />
-              <Micro value={item.stats.avancaram} label="Avançaram" tone="cream" arrow />
+              <Micro
+                value={item.stats.saudaveis}
+                label="Saudáveis"
+                tone="ok"
+              />
+              <Micro value={item.stats.atencao} label="Atenção" tone="warn" />
+              <Micro
+                value={item.stats.criticos}
+                label="Críticos"
+                tone="critical"
+              />
+              <Micro
+                value={item.stats.avancaram}
+                label="Avançaram"
+                tone="primary"
+                arrow
+              />
             </div>
 
             <div className="flex flex-col gap-1 mt-1">
               <div className="flex items-baseline justify-between">
-                <span className="text-cream text-[11px]">Tasks</span>
-                <span className="font-mono text-cream-muted text-[11px] tabular-nums">
-                  {item.tasksProgress.done}/{item.tasksProgress.total} · {taskPct}%
+                <span className="text-text-primary text-[11px]">Tasks</span>
+                <span className="font-mono text-text-secondary text-[11px] tabular-nums">
+                  {item.tasksProgress.done}/{item.tasksProgress.total} ·{" "}
+                  {taskPct}%
                 </span>
               </div>
-              <div className="h-1.5 rounded-full bg-combat/60 overflow-hidden ring-1 ring-tactical/40">
+              <div className="h-1.5 rounded-full bg-surface-base/60 overflow-hidden ring-1 ring-border-default/40">
                 <div
                   className="h-full bar-gradient-warm"
                   style={{ width: `${taskPct}%` }}
@@ -89,10 +96,10 @@ export function ProductBreakdown({ items, className }: ProductBreakdownProps) {
             {item.highlight ? (
               <div className="flex items-center gap-2 mt-1">
                 <span className="w-1.5 h-1.5 rounded-full bg-bronze" />
-                <span className="text-cream text-[11px] flex-1 truncate">
+                <span className="text-text-primary text-[11px] flex-1 truncate">
                   {item.highlight.name}
                 </span>
-                <span className="font-display text-[10px] text-cream-muted tracking-[0.05em]">
+                <span className="font-display text-[10px] text-text-secondary tracking-[0.05em]">
                   {item.highlight.tag} · {item.highlight.pct}%
                 </span>
               </div>
@@ -112,14 +119,14 @@ function Micro({
 }: {
   value: number;
   label: string;
-  tone: "patrol" | "bronze" | "casualty" | "cream";
+  tone: "ok" | "warn" | "critical" | "primary";
   arrow?: boolean;
 }) {
   const TONE_CLASS = {
-    patrol: "text-patrol",
-    bronze: "text-bronze",
-    casualty: "text-casualty",
-    cream: "text-cream",
+    ok: "text-status-ok-text",
+    warn: "text-status-warn-text",
+    critical: "text-status-critical-text",
+    primary: "text-text-primary",
   }[tone];
 
   return (
@@ -133,7 +140,7 @@ function Micro({
         {arrow ? "↗" : ""}
         {value}
       </span>
-      <span className="label-display text-[8px] text-cream-dim">{label}</span>
+      <span className="label-display text-[8px] text-text-label">{label}</span>
     </div>
   );
 }

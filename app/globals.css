@@ -1,10 +1,16 @@
 @import "tailwindcss";
 
 /*
-  CRM Squad Five — Design tokens v2 (Sprint 1.5).
+  CRM Squad Five — Design tokens (Sprint 1.5 + Sprint A11y).
   Referencia: docs/03_SISTEMA_DESIGN.md
 */
 @theme {
+  /* ============================================================
+     CAMADA 1 — TOKENS DE MARCA (literais)
+     Cores calibradas para FILL (preenchimento). Para texto, use a
+     camada -text especifica (ver tarefa de a11y, secao 2.6 do design).
+     ============================================================ */
+
   /* Paleta primaria */
   --color-combat: #1a1816;
   --color-jungle: #2f4a2c;
@@ -15,22 +21,31 @@
   --color-bronze: #d78a5c;
   --color-tactical: #3d3a35;
 
-  /* Status */
+  /* Status — variantes de FILL */
   --color-casualty: #c84a4a;
   --color-casualty-deep: #6b1f1f;
 
-  /* Texto */
+  /* Variantes de TEXTO de status (calibradas para >=4.5:1 sobre combat) */
+  --color-patrol-text: #7fa876;
+  --color-casualty-text: #e66b6b;
+
+  /* CTA primario — calibrado para texto combat por cima (>=4.5:1) */
+  --color-copper-cta: #c26b45;
+
+  /* Texto neutro */
   --color-cream: #e8e5d8;
   --color-cream-muted: #c9c1ae;
   --color-cream-dim: #8a8378;
 
-  /* Cores auxiliares — niveis de elevacao */
+  /* Auxiliares — niveis de elevacao */
   --color-card-raised: #25221f;
   --color-card-deep: #1f1c1a;
   --color-card-glow: #2f2823;
   --color-divider: #2a2724;
   --color-disabled: #5f5c55;
-  --color-label-muted: #6b665d;
+
+  /* CORRIGIDO: subiu o brilho para passar 4.5:1 sobre card-raised. */
+  --color-label-muted: #9b9488;
 
   /* Acentos sutis para gradientes */
   --color-jungle-deep: #1f3320;
@@ -38,16 +53,89 @@
   --color-copper-deep: #5a2e1d;
   --color-bronze-glow: #f0a574;
 
-  /* Fontes */
+  /* ============================================================
+     CAMADA 2 — ALIASES SEMANTICOS
+     Componentes consomem estes tokens (bg-surface-*, text-text-*,
+     border-border-*, etc.) em vez dos literais de marca acima. Em fase
+     2 (light mode), basta re-apontar ESTE bloco — os componentes nao
+     mudam. Ver tarefa de aliases na secao 2.7 do design system.
+     ============================================================ */
+
+  --color-surface-base: var(--color-combat);
+  --color-surface-raised: var(--color-card-raised);
+  --color-surface-deep: var(--color-card-deep);
+  --color-surface-accent: var(--color-jungle);
+  --color-surface-glow: var(--color-card-glow);
+
+  --color-text-primary: var(--color-cream);
+  --color-text-secondary: var(--color-cream-muted);
+  --color-text-dim: var(--color-cream-dim);
+  --color-text-label: var(--color-label-muted);
+  --color-text-disabled: var(--color-disabled);
+
+  --color-accent: var(--color-copper);
+  --color-accent-cta: var(--color-copper-cta);
+  --color-accent-cta-fg: var(--color-combat);
+  --color-accent-hover: var(--color-bronze);
+
+  --color-border-default: var(--color-tactical);
+  --color-border-strong: var(--color-patrol);
+  --color-border-divider: var(--color-divider);
+
+  --color-focus-ring: var(--color-copper);
+
+  /* Status semanticos (alias) */
+  --color-status-ok: var(--color-patrol);
+  --color-status-ok-text: var(--color-patrol-text);
+  --color-status-warn: var(--color-bronze);
+  --color-status-warn-text: var(--color-bronze);
+  --color-status-critical: var(--color-casualty);
+  --color-status-critical-deep: var(--color-casualty-deep);
+  --color-status-critical-text: var(--color-casualty-text);
+  --color-status-idle: var(--color-tactical);
+  --color-status-idle-text: var(--color-cream-muted);
+
+  /* ============================================================
+     FONTES
+     ============================================================ */
   --font-display: var(--font-oswald), Impact, "Bebas Neue", "Arial Narrow", sans-serif;
   --font-sans: var(--font-inter), system-ui, -apple-system, sans-serif;
   --font-mono: var(--font-jetbrains-mono), "Roboto Mono", monospace;
 
-  /* Radii */
+  /* ============================================================
+     RADII
+     ============================================================ */
   --radius-pill: 4px;
   --radius-card: 8px;
   --radius-card-lg: 12px;
   --radius-input: 6px;
+
+  /* ============================================================
+     ESCALA DE Z-INDEX
+     Toda camada do app sai daqui. Nenhum z-index numerico solto.
+     ============================================================ */
+  --z-index-base: 0;
+  --z-index-content: 10;
+  --z-index-sticky: 100;
+  --z-index-dropdown: 200;
+  --z-index-drawer: 300;
+  --z-index-modal: 400;
+  --z-index-command: 500;
+  --z-index-toast: 600;
+}
+
+/* ============================================================
+   DENSIDADE — alvo de toque minimo (touch targets)
+   Mobile (default): comfortable, >=44px conforme WCAG 2.2.
+   Desktop (>=1024px): compact, 32px aceitavel.
+   ============================================================ */
+:root {
+  --touch-min: 44px;
+}
+@media (min-width: 1024px) {
+  :root {
+    --touch-min: 32px;
+  }
 }
 
 /* ============================================================
@@ -55,8 +143,8 @@
    ============================================================ */
 
 html {
-  background: var(--color-combat);
-  color: var(--color-cream);
+  background: var(--color-surface-base);
+  color: var(--color-text-primary);
   color-scheme: dark;
 }
 
@@ -66,11 +154,7 @@ body {
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  /*
-    Textura de camuflagem digital Tier 3 — SVG noise + grain.
-    Opacidade ~4% para nao competir com leitura.
-  */
-  background-color: var(--color-combat);
+  background-color: var(--color-surface-base);
   background-image:
     radial-gradient(at 18% 12%, rgba(47, 74, 44, 0.18) 0px, transparent 55%),
     radial-gradient(at 82% 88%, rgba(168, 90, 58, 0.08) 0px, transparent 50%),
@@ -81,12 +165,12 @@ body {
 }
 
 ::selection {
-  background: var(--color-copper);
+  background: var(--color-accent);
   color: var(--color-combat);
 }
 
 *:focus-visible {
-  outline: 2px solid rgba(168, 90, 58, 0.5);
+  outline: 2px solid color-mix(in srgb, var(--color-focus-ring) 50%, transparent);
   outline-offset: 2px;
   border-radius: 2px;
 }
@@ -100,9 +184,9 @@ body {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--color-tactical);
+  background: var(--color-border-default);
   border-radius: 8px;
-  border: 2px solid var(--color-combat);
+  border: 2px solid var(--color-surface-base);
 }
 ::-webkit-scrollbar-thumb:hover {
   background: var(--color-copper-deep);
@@ -112,7 +196,6 @@ body {
    ANIMACOES
    ============================================================ */
 
-/* Tier 2 — pulse de status critico */
 @keyframes pulse-status {
   0%, 100% { opacity: 1; transform: scale(1); }
   50% { opacity: 0.6; transform: scale(0.92); }
@@ -121,7 +204,6 @@ body {
   animation: pulse-status 1.4s ease-in-out infinite;
 }
 
-/* Tier 2 — pulse "live" (sino, indicador online) */
 @keyframes pulse-live {
   0%, 100% { box-shadow: 0 0 0 0 rgba(74, 107, 69, 0.6); }
   70% { box-shadow: 0 0 0 8px rgba(74, 107, 69, 0); }
@@ -130,7 +212,6 @@ body {
   animation: pulse-live 2s ease-in-out infinite;
 }
 
-/* Tier 2 — glow no numero KPI */
 @keyframes glow-bronze {
   0%, 100% { text-shadow: 0 0 8px rgba(215, 138, 92, 0.15), 0 0 1px rgba(215, 138, 92, 0.3); }
   50% { text-shadow: 0 0 14px rgba(215, 138, 92, 0.32), 0 0 2px rgba(215, 138, 92, 0.5); }
@@ -139,7 +220,6 @@ body {
   animation: glow-bronze 4s ease-in-out infinite;
 }
 
-/* Tier 1 — sway de folhas/elementos no login */
 @keyframes sway {
   0%, 100% { transform: translate(0, 0) rotate(-3deg); }
   50% { transform: translate(4px, -4px) rotate(3deg); }
@@ -148,7 +228,6 @@ body {
   animation: sway 8s ease-in-out infinite;
 }
 
-/* Tier 1 — drift de particulas */
 @keyframes drift-up {
   0% { transform: translateY(20px); opacity: 0; }
   20% { opacity: 0.6; }
@@ -159,7 +238,6 @@ body {
   animation: drift-up 14s linear infinite;
 }
 
-/* Tier 1 — respiracao do mascote */
 @keyframes breathe {
   0%, 100% { transform: scale(1); filter: drop-shadow(0 0 24px rgba(168, 90, 58, 0.2)); }
   50% { transform: scale(1.025); filter: drop-shadow(0 0 36px rgba(168, 90, 58, 0.35)); }
@@ -168,7 +246,6 @@ body {
   animation: breathe 5s ease-in-out infinite;
 }
 
-/* Tier 2 — shimmer sutil em progress bars */
 @keyframes shimmer {
   0% { background-position: -200% 0; }
   100% { background-position: 200% 0; }
@@ -178,7 +255,6 @@ body {
   animation: shimmer 3s linear infinite;
 }
 
-/* Reduced motion: derruba tudo */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -194,10 +270,9 @@ body {
    UTILITARIOS DE BRAND
    ============================================================ */
 
-/* Card com gradient sutil + borda esculpida */
 .surface-raised {
-  background: linear-gradient(180deg, var(--color-card-glow) 0%, var(--color-card-raised) 100%);
-  border: 0.5px solid var(--color-tactical);
+  background: linear-gradient(180deg, var(--color-surface-glow) 0%, var(--color-surface-raised) 100%);
+  border: 0.5px solid var(--color-border-default);
   border-radius: var(--radius-card);
   box-shadow:
     0 1px 0 0 rgba(255, 255, 255, 0.03) inset,
@@ -206,7 +281,7 @@ body {
 
 .surface-jungle {
   background: linear-gradient(180deg, var(--color-jungle-glow) 0%, var(--color-jungle) 60%, var(--color-jungle-deep) 100%);
-  border: 0.5px solid var(--color-patrol);
+  border: 0.5px solid var(--color-border-strong);
   border-radius: var(--radius-card);
   box-shadow:
     0 1px 0 0 rgba(255, 255, 255, 0.04) inset,
@@ -214,12 +289,11 @@ body {
 }
 
 .surface-deep {
-  background: var(--color-card-deep);
-  border: 0.5px solid var(--color-tactical);
+  background: var(--color-surface-deep);
+  border: 0.5px solid var(--color-border-default);
   border-radius: var(--radius-card);
 }
 
-/* Gradient horizontal tipico para progress bars */
 .bar-gradient-warm {
   background: linear-gradient(90deg, var(--color-casualty) 0%, var(--color-copper) 50%, var(--color-bronze) 100%);
 }
@@ -227,7 +301,6 @@ body {
   background: linear-gradient(90deg, var(--color-patrol) 0%, var(--color-jungle-glow) 100%);
 }
 
-/* Texto Oswald label uppercase padrao do design system */
 .label-display {
   font-family: var(--font-display);
   font-weight: 500;
@@ -236,7 +309,6 @@ body {
   line-height: 1;
 }
 
-/* Numero KPI grande */
 .kpi-number {
   font-family: var(--font-display);
   font-weight: 500;
@@ -244,11 +316,29 @@ body {
   color: var(--color-bronze);
 }
 
-/* Hover lift padrao Tier 2 */
 .lift-hover {
   transition: transform 220ms ease-out, box-shadow 220ms ease-out, border-color 220ms ease-out;
 }
 .lift-hover:hover {
   transform: translateY(-1px);
-  border-color: var(--color-patrol);
+  border-color: var(--color-border-strong);
+}
+
+/*
+  Touch target — garante area minima de 44x44 no mobile (WCAG 2.2 AAA).
+  Usar em botoes-icone e linhas clicaveis pequenas. Aplica via
+  pseudo-elemento para NAO inflar o tamanho visual.
+*/
+.touch-target {
+  position: relative;
+}
+.touch-target::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: max(var(--touch-min), 100%);
+  height: max(var(--touch-min), 100%);
+  transform: translate(-50%, -50%);
+  pointer-events: auto;
 }

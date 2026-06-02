@@ -8,11 +8,8 @@ import { cn } from "@/lib/utils";
 interface PageHeaderProps {
   title: string;
   subtitle?: string;
-  /** Data/hora do ultimo refresh dos dados — formata como "Atualizado HH:MM" */
   updatedAt?: Date;
-  /** Quando true, mostra a bolinha verde piscando ao lado do "Atualizado" */
   live?: boolean;
-  /** Acoes opcionais a direita (botoes, filtros) */
   actions?: React.ReactNode;
   className?: string;
 }
@@ -41,21 +38,21 @@ export function PageHeader({
       )}
     >
       <div className="flex flex-col gap-1">
-        <h1 className="font-display text-[26px] sm:text-[28px] font-medium leading-tight text-cream">
+        <h1 className="font-display text-[26px] sm:text-[28px] font-medium leading-tight text-text-primary">
           {title}
         </h1>
         {subtitle ? (
-          <p className="text-cream-muted text-[13px]">{subtitle}</p>
+          <p className="text-text-secondary text-[13px]">{subtitle}</p>
         ) : null}
       </div>
 
       <div className="flex items-center gap-4">
         {actions}
         {updatedAt ? (
-          <div className="flex items-center gap-2 text-cream-dim text-[11px] font-mono">
+          <div className="flex items-center gap-2 text-text-dim text-[11px] font-mono">
             {live ? (
               <span
-                className="inline-block w-1.5 h-1.5 rounded-full bg-patrol animate-pulse-live"
+                className="inline-block w-1.5 h-1.5 rounded-full bg-status-ok animate-pulse-live"
                 aria-hidden
               />
             ) : null}

@@ -59,7 +59,57 @@ Regra: sempre escolher pelo contraste, nunca pelo "default".
 | `#25221F` | Background de cards secundários (sutilmente mais claro que o preto combate) |
 | `#2A2724` | Divisores internos de cards |
 | `#5F5C55` | Texto desabilitado |
-| `#6B665D` | Labels de uppercase pequenos |
+| `#9B9488` | Labels uppercase pequenos (label-muted, corrigido em Sprint A11y para passar 4.5:1) |
+
+### 2.5 Tokens de TEXTO para status (Sprint A11y)
+
+Cores calibradas para FILL não passam contraste 4.5:1 quando viram texto sobre fundo escuro. Use estes tokens dedicados quando a cor de status for cor de **texto** (e não fill):
+
+| Hex | Token | Uso | Contraste sobre combat |
+|---|---|---|---|
+| `#7FA876` | `patrol-text` | Verde como texto (status "em campo" em corpo, números OK) | 6,55:1 |
+| `#E66B6B` | `casualty-text` | Vermelho como texto (KPI negativo, hint de erro, badge) | 5,63:1 |
+| `#D78A5C` | `bronze` (existente) | Amarelo/atenção como texto e número KPI principal | 6,47:1 |
+| `#C26B45` | `copper-cta` | Fill do botão primário — texto combat por cima passa em 4,62:1 |
+
+### 2.6 Regra fill vs text (não negociável)
+
+Toda cor semântica existe em **dois papéis**: `fill` (fundo, barra, pílula) e `text` (texto, borda fina sobre dark). Antes de usar uma cor, pergunte:
+
+> **"É fill ou text?"**
+
+Status como texto **sempre** usa a variante `-text`. Status como preenchimento usa o token base. Exemplos:
+
+- ✅ `bg-status-critical text-text-primary` (pill vermelha com texto creme)
+- ✅ `bg-surface-base text-status-critical-text` (texto vermelho sobre fundo escuro)
+- ❌ `bg-surface-base text-casualty` (vermelho de FILL como texto — falha contraste)
+
+### 2.7 Camada de aliases semânticos (preparação fase 2)
+
+Os tokens de marca (combat, jungle, copper) descrevem **identidade**, não **função**. Componentes não devem consumir literais de marca diretamente — usam aliases semânticos que apontam para a marca. Quando o light mode (fase 2) chegar, basta re-apontar este bloco; os componentes não mudam.
+
+| Alias | Aponta hoje para | Função |
+|---|---|---|
+| `surface-base` | combat | Fundo master |
+| `surface-raised` | card-raised | Card padrão |
+| `surface-deep` | card-deep | Topbar, input bg |
+| `surface-accent` | jungle | Card destaque |
+| `surface-glow` | card-glow | Gradient top de surface-raised |
+| `text-primary` | cream | Texto principal |
+| `text-secondary` | cream-muted | Texto secundário |
+| `text-dim` | cream-dim | Texto auxiliar |
+| `text-label` | label-muted | Labels uppercase |
+| `accent` | copper | Identidade |
+| `accent-cta` | copper-cta | Fill do botão primário |
+| `accent-cta-fg` | combat | Texto sobre CTA |
+| `accent-hover` | bronze | Hover do CTA |
+| `border-default` | tactical | Bordas neutras |
+| `border-strong` | patrol | Bordas destacadas |
+| `focus-ring` | copper | Anel de foco |
+| `status-ok` / `status-ok-text` | patrol / patrol-text | Em campo |
+| `status-warn` / `status-warn-text` | bronze / bronze | Atenção |
+| `status-critical` / `status-critical-deep` / `status-critical-text` | casualty / casualty-deep / casualty-text | Baixa iminente |
+| `status-idle` / `status-idle-text` | tactical / cream-muted | Extração |
 
 ---
 
@@ -112,7 +162,41 @@ Escala (use sempre múltiplos):
 - 3 colunas: repeat(3, 1fr) com gap 12px
 - 4 colunas: repeat(4, 1fr) com gap 10px (kanban, KPIs)
 
-**Container máximo:** 1280px (a maioria do squad usa monitor padrão; otimizar para 1366px+ funciona bem)
+**Container máximo:** 1320px (a maioria do squad usa monitor padrão; otimizar para 1366px+ funciona bem)
+
+### 4.1 Escala de z-index (única fonte da verdade)
+
+Toda camada do app vem desta escala. **Nenhum z-index numérico solto** nos componentes.
+
+| Token Tailwind | Valor | Onde |
+|---|---|---|
+| `z-base` | 0 | Padrão |
+| `z-content` | 10 | Conteúdo sobre AmbientLayer (Login, 404) |
+| `z-sticky` | 100 | Topbar, BottomTabBar |
+| `z-dropdown` | 200 | Selects, menus, tooltips |
+| `z-drawer` | 300 | NotificationCenter (Sprint 7) |
+| `z-modal` | 400 | Confirmações destrutivas |
+| `z-command` | 500 | CommandPalette ⌘K |
+| `z-toast` | 600 | Sempre por cima |
+
+### 4.2 Navegação responsiva
+
+| Breakpoint | Navegação primária | Topbar |
+|---|---|---|
+| `< 640px` (mobile) | **BottomTabBar** fixa na base (h-14) | wordmark + sino + avatar |
+| `640px - 1023px` (tablet) | **BottomTabBar** | + busca + Sair |
+| `≥ 1024px` (desktop) | **TopbarNav** centrada (pílulas) | completa |
+
+A BottomTabBar tem 5 destinos (Comando, Recrutas, Operações, Ordens, Pelotão) com ícone Tabler 20px + label Oswald uppercase 9px. Indicador ativo: barra cobre no topo + cor `accent` no ícone + `aria-current="page"`.
+
+### 4.3 Densidade e alvos de toque
+
+| Modo | Quando | Mínimo de toque |
+|---|---|---|
+| **comfortable** (padrão mobile) | `< 1024px` | 44×44px (WCAG 2.2 AAA) |
+| **compact** (desktop) | `≥ 1024px` | 32×32px |
+
+Controlado pela CSS var `--touch-min` (responsiva via media query). Botões-ícone usam `min-h-11 min-w-11 lg:min-h-9 lg:min-w-9` ou a utility global `.touch-target` (área tocável invisível via pseudo-elemento, sem inflar o tamanho visual).
 
 ---
 
@@ -176,11 +260,11 @@ border-radius: 4px
 font: Oswald uppercase 10px, letter-spacing 0.1em, weight 500
 ```
 
-Variantes:
-- **Em campo** — bg `#2F4A2C`, color `#C9C1AE`, border `#4A6B45`
-- **Atenção** — bg `#3D3A35`, color `#D78A5C`, border `#A85A3A`
-- **Baixa iminente** — bg `#C84A4A`, color `#2B0F0F`
-- **Extração** — bg `#3D3A35`, color `#8A8378`
+Variantes (calibradas para 4.5:1+):
+- **Em campo** — bg `surface-accent`, text `text-secondary`, border `border-strong`
+- **Atenção** — bg `border-default`, text `bronze`, border `accent`
+- **Baixa iminente** — bg `status-critical-deep` `#6B1F1F`, text `text-primary`, border `status-critical` *(corrigido em Sprint A11y — o original bg-casualty + #2B0F0F dava 3,9:1)*
+- **Extração** — bg `border-default`, text `text-secondary`, border `border-default`
 
 ### 5.6 Avatar (membro do squad)
 
@@ -315,11 +399,14 @@ Sempre acompanhado de ícone interno quando ≥18px:
 
 Mesmo dark, o sistema precisa atender padrões básicos:
 
-- **Contraste mínimo:** 4.5:1 entre texto e fundo (testar cada combinação da seção 2)
+- **Contraste mínimo:** 4.5:1 entre texto e fundo (testar cada combinação da seção 2). Status como texto **sempre** usa variante `-text` (ver §2.5/§2.6).
 - **Tamanho de texto mínimo:** 11px (caption); abaixo disso só ícones
-- **Focus visível:** anel de 2px `rgba(168, 90, 58, 0.4)` em todos os elementos focáveis
-- **Reduced motion:** desligar todas as animações de Tier 1 e Tier 2 quando `prefers-reduced-motion: reduce`
+- **Focus visível:** anel de 2px `color-mix(in srgb, var(--color-focus-ring) 50%, transparent)` em todos os elementos focáveis (via `*:focus-visible` global)
+- **Reduced motion:** desligar todas as animações de Tier 1 e Tier 2 quando `prefers-reduced-motion: reduce` (já tratado globalmente)
 - **Aria-labels:** ícones sem texto sempre têm `aria-label` ou `aria-hidden="true"`
+- **Status não-só-cor:** verde/amarelo/vermelho sempre acompanhado de ícone (StatusIndicator) ou texto (StatusPill) — WCAG 1.4.1
+- **Alvos de toque:** ≥44×44px no mobile (WCAG 2.2 AAA), ≥32px no desktop — via `--touch-min` responsivo
+- **`aria-current="page"`** em link de rota ativa (TopbarNav, BottomTabBar)
 
 ---
 

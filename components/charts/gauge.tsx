@@ -4,20 +4,17 @@ import { cn } from "@/lib/utils";
   Gauge — chart circular tipo "score" usado pra "Saude media".
   SVG puro, sem dependencia externa. Renderiza um anel parcial colorido
   baseado no valor (0-100) sobre um anel de fundo tactical.
+
+  Tokens: stroke colors via CSS vars (--color-status-ok, --color-bronze,
+  --color-status-critical) — zero hex hardcoded.
 */
 
 interface GaugeProps {
-  /** 0-100 */
   value: number;
-  /** Max do dominio (default 100) */
   max?: number;
-  /** Cor do anel — escolhe automatico baseado no value se nao for passado */
   tone?: "patrol" | "bronze" | "casualty";
-  /** Tamanho em px (default 180) */
   size?: number;
-  /** Label abaixo do numero */
   label?: string;
-  /** Texto auxiliar abaixo do label */
   hint?: string;
   className?: string;
 }
@@ -29,16 +26,22 @@ function autoTone(value: number, max: number): NonNullable<GaugeProps["tone"]> {
   return "casualty";
 }
 
-const STROKE_COLOR: Record<NonNullable<GaugeProps["tone"]>, string> = {
-  patrol: "#4a6b45",
-  bronze: "#d78a5c",
-  casualty: "#c84a4a",
+const STROKE_VAR: Record<NonNullable<GaugeProps["tone"]>, string> = {
+  patrol: "var(--color-status-ok)",
+  bronze: "var(--color-bronze)",
+  casualty: "var(--color-status-critical)",
 };
 
-const TEXT_COLOR: Record<NonNullable<GaugeProps["tone"]>, string> = {
-  patrol: "text-patrol",
+const GLOW_VAR: Record<NonNullable<GaugeProps["tone"]>, string> = {
+  patrol: "rgba(74, 107, 69, 0.33)",
+  bronze: "rgba(215, 138, 92, 0.33)",
+  casualty: "rgba(200, 74, 74, 0.33)",
+};
+
+const TEXT_CLASS: Record<NonNullable<GaugeProps["tone"]>, string> = {
+  patrol: "text-status-ok-text",
   bronze: "text-bronze",
-  casualty: "text-casualty",
+  casualty: "text-status-critical-text",
 };
 
 export function Gauge({
@@ -57,7 +60,6 @@ export function Gauge({
   const stroke = 14;
   const radius = (size - stroke) / 2;
   const circumference = 2 * Math.PI * radius;
-  // Comeca em -90deg (topo) e desenha 270deg (3/4 do circulo) — semi-gauge
   const arcLength = circumference * 0.75;
   const dashOffset = arcLength * (1 - pct);
 
@@ -74,32 +76,30 @@ export function Gauge({
           className="transform -rotate-[135deg]"
           aria-hidden
         >
-          {/* Anel de fundo */}
           <circle
             cx={size / 2}
             cy={size / 2}
             r={radius}
             fill="none"
-            stroke="#2a2724"
+            stroke="var(--color-divider)"
             strokeWidth={stroke}
             strokeLinecap="round"
             strokeDasharray={`${arcLength} ${circumference}`}
             strokeDashoffset={0}
           />
-          {/* Anel preenchido */}
           <circle
             cx={size / 2}
             cy={size / 2}
             r={radius}
             fill="none"
-            stroke={STROKE_COLOR[resolvedTone]}
+            stroke={STROKE_VAR[resolvedTone]}
             strokeWidth={stroke}
             strokeLinecap="round"
             strokeDasharray={`${arcLength} ${circumference}`}
             strokeDashoffset={dashOffset}
             style={{
               transition: "stroke-dashoffset 800ms ease-out",
-              filter: `drop-shadow(0 0 8px ${STROKE_COLOR[resolvedTone]}55)`,
+              filter: `drop-shadow(0 0 8px ${GLOW_VAR[resolvedTone]})`,
             }}
           />
         </svg>
@@ -107,30 +107,24 @@ export function Gauge({
           <span
             className={cn(
               "kpi-number text-[44px] leading-none animate-glow-bronze",
-              TEXT_COLOR[resolvedTone],
+              TEXT_CLASS[resolvedTone],
             )}
           >
             {safeValue}
           </span>
-          {max !== 100 ? (
-            <span className="font-mono text-cream-dim text-[11px] mt-1">
-              de {max}
-            </span>
-          ) : (
-            <span className="font-mono text-cream-dim text-[11px] mt-1">
-              / {max}
-            </span>
-          )}
+          <span className="font-mono text-text-dim text-[11px] mt-1">
+            {max === 100 ? `/ ${max}` : `de ${max}`}
+          </span>
         </div>
       </div>
 
       {label ? (
         <div className="flex flex-col items-center gap-0.5 text-center">
-          <span className="label-display text-[11px] text-cream-muted">
+          <span className="label-display text-[11px] text-text-secondary">
             {label}
           </span>
           {hint ? (
-            <span className="text-[11px] text-cream-dim">{hint}</span>
+            <span className="text-[11px] text-text-dim">{hint}</span>
           ) : null}
         </div>
       ) : null}
