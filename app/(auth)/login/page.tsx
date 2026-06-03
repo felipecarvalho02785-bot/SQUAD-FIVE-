@@ -26,13 +26,19 @@ export default function LoginPage() {
           <Mascot size={120} useAsset={true} breathing priority />
 
           <div className="flex flex-col items-center gap-2">
-            <span className="font-display uppercase tracking-[0.4em] text-[10px] text-bronze">
+            <span className="font-display uppercase tracking-[0.4em] text-[10px] text-bronze animate-wordmark-stamp">
               Squad Five
             </span>
-            <h1 className="font-display text-[34px] sm:text-[40px] font-medium leading-[1.05] text-text-primary">
+            <h1
+              className="font-display text-[34px] sm:text-[40px] font-medium leading-[1.05] text-text-primary animate-wordmark-stamp"
+              style={{ animationDelay: "180ms" }}
+            >
               Pronto pra operação?
             </h1>
-            <p className="text-text-secondary text-[13px] max-w-[30ch] mt-1">
+            <p
+              className="text-text-secondary text-[13px] max-w-[30ch] mt-1 animate-page-in"
+              style={{ animationDelay: "420ms", animationFillMode: "both" }}
+            >
               Acesse com seu e-mail da E3 e mobilize sua próxima operação.
             </p>
           </div>

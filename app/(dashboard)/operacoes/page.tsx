@@ -4,6 +4,7 @@ import { IconTargetArrow } from "@tabler/icons-react";
 import { PageHeader } from "@/components/squad/page-header";
 import { HealthBar } from "@/components/squad/health-bar";
 import { FilterChips, type FilterChip } from "@/components/squad/filter-chips";
+import { EmptyState } from "@/components/squad/empty-state";
 import { buttonVariants } from "@/components/ui/button";
 import { OperationListCard } from "@/components/operacao/operation-list-card";
 import { listOperations, countOperationHealth } from "@/lib/queries/operation";
@@ -207,35 +208,28 @@ export default async function OperacoesPage({
       </div>
 
       {operacoes.length === 0 ? (
-        <section className="surface-raised p-10 flex flex-col items-center text-center gap-4">
-          <div className="w-14 h-14 rounded-full bg-surface-accent border border-border-strong flex items-center justify-center">
-            <IconTargetArrow
-              size={26}
-              stroke={1.5}
-              className="text-bronze"
-              aria-hidden
-            />
-          </div>
-          <div className="flex flex-col gap-2 max-w-md">
-            <h2 className="font-display text-[20px] font-medium leading-tight text-text-primary">
-              {counts.total === 0
-                ? "Nenhuma operação mobilizada."
-                : "Nenhuma operação nesse filtro."}
-            </h2>
-            <p className="text-text-secondary text-[13px]">
-              {counts.total === 0
-                ? "Toda operação começa com um recruta + um produto. Recrute primeiro, depois mobilize."
-                : "Ajuste os filtros para encontrar o que você procura."}
-            </p>
-          </div>
-          <Link
-            href="/operacoes/nova"
-            className={buttonVariants({ variant: "primary", size: "md" })}
-          >
-            <IconTargetArrow size={14} aria-hidden />
-            Mobilizar operação
-          </Link>
-        </section>
+        <EmptyState
+          title={
+            counts.total === 0
+              ? "Nenhuma operação mobilizada."
+              : "Nenhuma operação nesse filtro."
+          }
+          description={
+            counts.total === 0
+              ? "Toda operação começa com um recruta + um produto. Recrute primeiro, depois mobilize."
+              : "Ajuste os filtros para encontrar o que você procura."
+          }
+          mood={counts.total === 0 ? "sleepy" : "calm"}
+          cta={
+            counts.total === 0
+              ? {
+                  href: "/operacoes/nova",
+                  label: "Mobilizar operação",
+                  icon: <IconTargetArrow size={14} aria-hidden />,
+                }
+              : undefined
+          }
+        />
       ) : (
         <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {operacoes.map((op) => (

@@ -6,6 +6,7 @@ import { TopbarNav, type NavItem } from "./topbar-nav";
 import { ThemeToggle } from "./theme-toggle";
 import { CommandPaletteTrigger } from "./command-palette";
 import { NotificationBell } from "./notification-bell";
+import { HealthPulse } from "./health-pulse";
 import { cn } from "@/lib/utils";
 import type { NotificationItem } from "@/lib/queries/notification";
 
@@ -33,6 +34,11 @@ interface TopbarProps {
     briefings?: number;
   };
   isAdmin?: boolean;
+  healthCounts?: {
+    emCampo: number;
+    atencao: number;
+    baixaIminente: number;
+  };
 }
 
 async function logoutAction() {
@@ -66,6 +72,7 @@ export function Topbar({
   notifications = [],
   navCounts = {},
   isAdmin = false,
+  healthCounts,
 }: TopbarProps) {
   const items: NavItem[] = [
     {
@@ -147,6 +154,7 @@ export function Topbar({
       </div>
 
       <div className="flex items-center gap-1.5">
+        {healthCounts ? <HealthPulse {...healthCounts} /> : null}
         <CommandPaletteTrigger />
 
         <Link

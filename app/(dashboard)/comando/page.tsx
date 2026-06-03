@@ -1,11 +1,18 @@
 import Link from "next/link";
-import { IconUserPlus, IconTargetArrow } from "@tabler/icons-react";
+import {
+  IconUserPlus,
+  IconTargetArrow,
+  IconCalendar,
+  IconChecks,
+  IconAlertTriangle,
+} from "@tabler/icons-react";
 import { auth } from "@/lib/auth";
-import { PageHeader } from "@/components/squad/page-header";
-import { HealthBar } from "@/components/squad/health-bar";
-import { buttonVariants } from "@/components/ui/button";
+import { DashboardHero } from "@/components/squad/dashboard-hero";
+import { KPICard } from "@/components/ui/kpi-card";
+import { EmptyState } from "@/components/squad/empty-state";
 import { getGreeting } from "@/lib/greeting";
 import { getDashboardSnapshot } from "@/lib/queries/dashboard";
+import { getKpisWithTrends } from "@/lib/queries/kpi-snapshot";
 import { ComandoContent } from "./comando-content";
 
 export const metadata = {
@@ -22,7 +29,11 @@ function formatShortDate(date: Date): string {
 }
 
 export default async function ComandoCentralPage() {
-  const [session, snapshot] = await Promise.all([auth(), getDashboardSnapshot()]);
+  const [session, snapshot, kpis] = await Promise.all([
+    auth(),
+    getDashboardSnapshot(),
+    getKpisWithTrends(),
+  ]);
 
   const firstName =
     session?.user?.name?.split(" ")[0] ??
@@ -36,70 +47,89 @@ export default async function ComandoCentralPage() {
 
   if (snapshot.isEmpty) {
     return (
-      <div className="flex flex-col gap-5">
-        <PageHeader
-          title={salute}
-          subtitle="Quartel pronto para mobilização. Bora alistar o primeiro recruta."
-          updatedAt={now}
-          live
-        />
-
-        <section className="surface-raised p-10 flex flex-col items-center text-center gap-4">
-          <div className="w-14 h-14 rounded-full bg-surface-accent border border-border-strong flex items-center justify-center">
-            <IconUserPlus
-              size={26}
-              stroke={1.5}
-              className="text-bronze"
-              aria-hidden
-            />
-          </div>
-          <div className="flex flex-col gap-2 max-w-md">
-            <h2 className="font-display text-[22px] font-medium leading-tight text-text-primary">
-              Nenhuma operação no campo ainda.
-            </h2>
-            <p className="text-text-secondary text-[13px]">
-              Comece alistando recrutas. Depois mobilize operações vinculadas
-              aos produtos do squad. Os KPIs ganham vida assim que tiver dados
-              reais.
-            </p>
-          </div>
-          <div className="flex flex-col sm:flex-row gap-2">
-            <Link
-              href="/recrutas/novo"
-              className={buttonVariants({ variant: "primary", size: "md" })}
-            >
-              <IconUserPlus size={14} aria-hidden />
-              Recrutar primeiro
-            </Link>
-            <Link
-              href="/operacoes/nova"
-              className={buttonVariants({ variant: "secondary", size: "md" })}
-            >
-              <IconTargetArrow size={14} aria-hidden />
-              Mobilizar operação
-            </Link>
-          </div>
-        </section>
-      </div>
+      <EmptyState
+        title="Nenhuma operação no campo ainda."
+        description="Comece alistando recrutas. Depois mobilize operações vinculadas aos produtos do squad. Os KPIs ganham vida assim que tiver dados reais."
+        mood="sleepy"
+        mascotSize={140}
+        cta={{
+          href: "/recrutas/novo",
+          label: "Recrutar primeiro",
+          icon: <IconUserPlus size={14} aria-hidden />,
+        }}
+        secondaryCta={{
+          href: "/operacoes/nova",
+          label: "Mobilizar operação",
+          icon: <IconTargetArrow size={14} aria-hidden />,
+        }}
+      />
     );
   }
 
   return (
     <div className="flex flex-col gap-5">
-      <PageHeader
-        title={salute}
-        subtitle={callToBriefing}
+      <DashboardHero
+        salute={salute}
+        callToAction={callToBriefing}
         updatedAt={now}
-        live
+        saudeMedia={snapshot.saudeMedia}
+        health={{
+          emCampo: snapshot.healthCounts.em_campo,
+          atencao: snapshot.healthCounts.atencao,
+          baixaIminente: snapshot.healthCounts.baixa_iminente,
+          extracao: snapshot.healthCounts.extracao,
+          total: snapshot.healthCounts.total,
+        }}
       />
 
-      <HealthBar
-        total={snapshot.healthCounts.total}
-        emCampo={snapshot.healthCounts.em_campo}
-        atencao={snapshot.healthCounts.atencao}
-        baixaIminente={snapshot.healthCounts.baixa_iminente}
-        extracao={snapshot.healthCounts.extracao}
-        label="Operações ativas"
+      <section
+        aria-label="Indicadores da semana"
+        className="grid grid-cols-2 lg:grid-cols-4 gap-3"
+      >
+        <KPICard
+          label={kpis.tasksCompleted.label}
+          value={kpis.tasksCompleted.value}
+          icon={IconChecks}
+          previous={kpis.tasksCompleted.previous}
+          sparkline={kpis.tasksCompleted.sparkline}
+          sparklineTone="patrol"
+          hint="Últimos 7 dias"
+        />
+        <KPICard
+          label={kpis.briefings.label}
+          value={kpis.briefings.value}
+          icon={IconCalendar}
+          previous={kpis.briefings.previous}
+          sparkline={kpis.briefings.sparkline}
+          sparklineTone="bronze"
+          hint="Últimos 7 dias"
+        />
+        <KPICard
+          label={kpis.newRecruits.label}
+          value={kpis.newRecruits.value}
+          icon={IconUserPlus}
+          previous={kpis.newRecruits.previous}
+          sparkline={kpis.newRecruits.sparkline}
+          sparklineTone="bronze"
+          hint="Últimos 7 dias"
+        />
+        <KPICard
+          label={kpis.gapsOpened.label}
+          value={kpis.gapsOpened.value}
+          icon={IconAlertTriangle}
+          negative={kpis.gapsOpened.value > 0}
+          previous={kpis.gapsOpened.previous}
+          reverseTrend
+          sparkline={kpis.gapsOpened.sparkline}
+          sparklineTone="casualty"
+          hint="Últimos 7 dias"
+        />
+      </section>
+
+      <Link
+        href="/comando"
+        className="hidden"
+        aria-hidden
       />
 
       <ComandoContent

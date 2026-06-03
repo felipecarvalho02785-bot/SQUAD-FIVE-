@@ -6,6 +6,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { RecruitListCard } from "@/components/recruta/recruit-list-card";
 import { RecruitFilters } from "@/components/recruta/recruit-filters";
 import { FilterChips, type FilterChip } from "@/components/squad/filter-chips";
+import { EmptyState } from "@/components/squad/empty-state";
 import {
   listRecruits,
   countRecruitsByStatus,
@@ -132,35 +133,28 @@ export default async function RecrutasPage({
       <FilterChips chips={buildChips(filter)} />
 
       {recrutas.length === 0 ? (
-        <section className="surface-raised p-10 flex flex-col items-center text-center gap-4">
-          <div className="w-14 h-14 rounded-full bg-surface-accent border border-border-strong flex items-center justify-center">
-            <IconUserPlus
-              size={26}
-              stroke={1.5}
-              className="text-bronze"
-              aria-hidden
-            />
-          </div>
-          <div className="flex flex-col gap-2 max-w-md">
-            <h2 className="font-display text-[20px] font-medium leading-tight text-text-primary">
-              {counts.total === 0
-                ? "Nenhum recruta no radar."
-                : "Nenhum recruta nesse filtro."}
-            </h2>
-            <p className="text-text-secondary text-[13px]">
-              {counts.total === 0
-                ? "Bora alistar o primeiro? Recrutas viram operações, briefings e ordens — toda a jornada começa aqui."
-                : "Ajuste a busca ou o filtro de status para encontrar quem você procura."}
-            </p>
-          </div>
-          <Link
-            href="/recrutas/novo"
-            className={buttonVariants({ variant: "primary", size: "md" })}
-          >
-            <IconUserPlus size={14} aria-hidden />
-            Recrutar novo
-          </Link>
-        </section>
+        <EmptyState
+          title={
+            counts.total === 0
+              ? "Nenhum recruta no radar."
+              : "Nenhum recruta nesse filtro."
+          }
+          description={
+            counts.total === 0
+              ? "Bora alistar o primeiro? Recrutas viram operações, briefings e ordens — toda a jornada começa aqui."
+              : "Ajuste a busca ou o filtro de status para encontrar quem você procura."
+          }
+          mood={counts.total === 0 ? "sleepy" : "calm"}
+          cta={
+            counts.total === 0
+              ? {
+                  href: "/recrutas/novo",
+                  label: "Recrutar novo",
+                  icon: <IconUserPlus size={14} aria-hidden />,
+                }
+              : undefined
+          }
+        />
       ) : (
         <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {recrutas.map((recruit) => (
