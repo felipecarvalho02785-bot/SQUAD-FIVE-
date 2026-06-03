@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { Topbar } from "@/components/squad/topbar";
 import { BottomTabBar } from "@/components/squad/bottom-tab-bar";
 import { PageTransition } from "@/components/squad/page-transition";
+import { QuickAddFab } from "@/components/squad/quick-add-fab";
 import { countUnread, listNotifications } from "@/lib/queries/notification";
 import { countOperationHealth } from "@/lib/queries/operation";
 
@@ -46,6 +47,7 @@ export default async function DashboardLayout({
         </div>
       </main>
       <BottomTabBar />
+      <QuickAddFab />
     </div>
   );
 }

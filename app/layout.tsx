@@ -26,6 +26,16 @@ const jetbrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   title: "Squad Five — CRM",
   description: "Sistema operacional do Squad 5",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "Squad 5",
+  },
+  icons: {
+    icon: "/brand/squad-5-shield.png",
+    apple: "/brand/squad-5-shield.png",
+  },
 };
 
 export default function RootLayout({

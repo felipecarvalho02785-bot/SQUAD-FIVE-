@@ -73,9 +73,13 @@ export function RecruitListCard({ recruit }: RecruitListCardProps) {
     <Link
       href={`/recrutas/${recruit.id}`}
       className={cn(
-        "relative surface-raised lift-hover p-4 flex flex-col gap-3 group",
+        "relative surface-raised lift-hover p-4 flex flex-col gap-3 group overflow-hidden",
         "before:absolute before:left-0 before:top-3 before:bottom-3 before:w-[3px] before:rounded-r-full",
+        "after:absolute after:top-0 after:left-0 after:right-0 after:h-[2px] after:opacity-70",
         STATUS_BORDER[recruit.status],
+        recruit.status === "ATIVO" && "after:bg-status-ok/60",
+        recruit.status === "PAUSADO" && "after:bg-status-warn/60",
+        recruit.status === "BAIXA" && "after:bg-status-idle/60",
       )}
     >
       <header className="flex items-start gap-3">

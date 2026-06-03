@@ -58,9 +58,15 @@ export function OperationListCard({ operation }: OperationListCardProps) {
     <Link
       href={`/operacoes/${operation.id}`}
       className={cn(
-        "relative surface-raised lift-hover p-4 flex flex-col gap-3 group",
+        "relative surface-raised lift-hover p-4 flex flex-col gap-3 group overflow-hidden",
         "before:absolute before:left-0 before:top-3 before:bottom-3 before:w-[3px] before:rounded-r-full",
+        "after:absolute after:top-0 after:left-0 after:right-0 after:h-[2px] after:opacity-70",
         HEALTH_BORDER[operation.health],
+        operation.health === "em_campo" && "after:bg-status-ok/60",
+        operation.health === "atencao" && "after:bg-status-warn/60",
+        operation.health === "baixa_iminente" &&
+          "after:bg-status-critical/70 after:animate-pulse-status",
+        operation.health === "extracao" && "after:bg-status-idle/60",
       )}
     >
       <header className="flex items-start gap-3">

@@ -1,0 +1,49 @@
+{
+  "name": "Squad Five",
+  "short_name": "Squad 5",
+  "description": "Sistema operacional do Squad 5 — CRM da E3 Digital",
+  "start_url": "/comando",
+  "display": "standalone",
+  "background_color": "#1a1816",
+  "theme_color": "#1a1816",
+  "orientation": "portrait-primary",
+  "lang": "pt-BR",
+  "scope": "/",
+  "icons": [
+    {
+      "src": "/brand/squad-5-shield.png",
+      "sizes": "591x423",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/brand/squad-5-shield.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/brand/squad-5-shield.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Recrutar novo",
+      "short_name": "Recrutar",
+      "url": "/recrutas/novo"
+    },
+    {
+      "name": "Mobilizar operação",
+      "short_name": "Mobilizar",
+      "url": "/operacoes/nova"
+    },
+    {
+      "name": "Registrar briefing",
+      "short_name": "Briefing",
+      "url": "/briefings/novo"
+    }
+  ]
+}
