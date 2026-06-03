@@ -16,11 +16,14 @@ import { StatusPill } from "@/components/ui/status-pill";
 import { buttonVariants } from "@/components/ui/button";
 import { StageTimeline } from "@/components/operacao/stage-timeline";
 import { StageActions } from "@/components/operacao/stage-actions";
+import { ActivityLog } from "@/components/operacao/activity-log";
+import { GapSection } from "@/components/operacao/gap-section";
 import { OrderListItem } from "@/components/ordem/order-list-item";
 import { OrderForm } from "@/components/ordem/order-form";
 import { getOperationById } from "@/lib/queries/operation";
 import { listSquadMembers } from "@/lib/queries/user";
 import { createOrderAction } from "@/lib/actions/order";
+import { buildActivityLog } from "@/lib/domain/activity-log";
 
 export const dynamic = "force-dynamic";
 
@@ -100,6 +103,28 @@ export default async function OperacaoDetalhePage({
     (acc, s) => acc + s.orders.length,
     0,
   );
+
+  const activityEvents = buildActivityLog({
+    id: operation.id,
+    codeName: operation.codeName,
+    startedAt: operation.startedAt,
+    endedAt: operation.endedAt,
+    status: operation.status,
+    stages: operation.stages,
+    briefings: operation.briefings.map((b) => ({
+      id: b.id,
+      date: b.date,
+      npsScore: b.npsScore,
+      createdBy: b.createdBy ? { name: b.createdBy.name } : null,
+    })),
+    gaps: operation.gaps.map((g) => ({
+      id: g.id,
+      description: g.description,
+      createdAt: g.createdAt,
+      resolvedAt: g.resolvedAt,
+      type: g.type,
+    })),
+  });
 
   const justKey = Array.isArray(sp.just) ? sp.just[0] : sp.just;
   const justMessage = justKey ? JUST_MESSAGES[justKey] : undefined;
@@ -292,28 +317,30 @@ export default async function OperacaoDetalhePage({
             )}
           </section>
 
-          {operation.gaps.length > 0 ? (
-            <section className="surface-raised p-5 flex flex-col gap-3 border-l-4 border-status-warn/60">
-              <header className="flex items-center gap-2">
-                <h2 className="label-display text-[11px] text-status-warn-text">
-                  Gaps em aberto
-                </h2>
-                <span className="font-mono text-[11px] text-status-warn-text">
-                  {operation.gaps.length}
-                </span>
-              </header>
-              <ul className="flex flex-col gap-2">
-                {operation.gaps.map((gap) => (
-                  <li
-                    key={gap.id}
-                    className="p-3 rounded-card bg-surface-deep border border-border-default/60 text-[12px] text-text-primary"
-                  >
-                    {gap.description}
-                  </li>
-                ))}
-              </ul>
-            </section>
-          ) : null}
+          <GapSection
+            operationId={operation.id}
+            gaps={operation.gaps.map((g) => ({
+              id: g.id,
+              description: g.description,
+              source: g.source,
+              status: g.status,
+              type: g.type,
+              createdAt: g.createdAt,
+            }))}
+          />
+
+          <section className="surface-raised p-5 flex flex-col gap-3">
+            <header className="flex items-center gap-2">
+              <h2 className="label-display text-[11px] text-text-secondary">
+                Atividade da operação
+              </h2>
+              <span className="font-mono text-[11px] text-text-dim">
+                {activityEvents.length}
+              </span>
+            </header>
+            <ActivityLog events={activityEvents} limit={20} />
+          </section>
+
         </div>
 
         <aside className="flex flex-col gap-3">

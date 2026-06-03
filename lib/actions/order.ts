@@ -7,6 +7,7 @@ import { OrderStatus } from "@prisma/client";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db/prisma";
 import { orderInputSchema, type OrderInput } from "@/lib/schemas/order";
+import { notifyOrderAssigned } from "@/lib/domain/notification-emitter";
 
 export type ActionResult =
   | { ok: true }
@@ -66,6 +67,7 @@ export async function createOrderAction(
   }
 
   const data = parsed.data;
+  const session = await auth();
   const created = await prisma.order.create({
     data: {
       title: data.title,
@@ -82,8 +84,41 @@ export async function createOrderAction(
     },
   });
 
+  if (data.assigneeId) {
+    await notifyOrderAssigned({
+      orderId: created.id,
+      assigneeId: data.assigneeId,
+      assignedByUserId: session?.user?.id ?? null,
+      title: data.title,
+    });
+  }
+
   await revalidateOrderContext(created.stage?.operationId);
   redirect(`${redirectTo}?just=order-created`);
+}
+
+/**
+ * Versão sem redirect — usada por componentes client com optimistic UI.
+ * Retorna ActionResult em vez de jogar NEXT_REDIRECT, permitindo que o
+ * client mostre toast.
+ */
+export async function updateOrderStatusOnlyAction(
+  orderId: string,
+  status: OrderStatus,
+): Promise<ActionResult> {
+  await requireSession();
+
+  const updated = await prisma.order.update({
+    where: { id: orderId },
+    data: {
+      status,
+      completedAt: status === OrderStatus.CUMPRIDA ? new Date() : null,
+    },
+    include: { stage: { select: { operationId: true } } },
+  });
+
+  await revalidateOrderContext(updated.stage?.operationId);
+  return { ok: true };
 }
 
 export async function updateOrderStatusAction(

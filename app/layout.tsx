@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Oswald, Inter, JetBrains_Mono } from "next/font/google";
+import { Toaster } from "sonner";
 import "./globals.css";
 
 const oswald = Oswald({
@@ -35,10 +36,34 @@ export default function RootLayout({
   return (
     <html
       lang="pt-BR"
+      data-theme="dark"
       className={`${oswald.variable} ${inter.variable} ${jetbrainsMono.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
-      <body className="bg-combat text-cream min-h-full flex flex-col">
+      <head>
+        <script
+          // Anti-FOUC: aplica o tema salvo antes da hidratação
+          dangerouslySetInnerHTML={{
+            __html: `try{var t=localStorage.getItem("squad-theme");if(t==="light"||t==="dark"){document.documentElement.setAttribute("data-theme",t)}}catch(e){}`,
+          }}
+        />
+      </head>
+      <body className="bg-surface-base text-text-primary min-h-full flex flex-col">
         {children}
+        <Toaster
+          theme="dark"
+          position="top-right"
+          richColors
+          closeButton
+          toastOptions={{
+            classNames: {
+              toast:
+                "!bg-surface-raised !text-text-primary !border !border-border-default",
+              title: "!font-display !text-[13px]",
+              description: "!text-text-secondary !text-[11px]",
+            },
+          }}
+        />
       </body>
     </html>
   );

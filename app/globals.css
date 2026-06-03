@@ -125,10 +125,76 @@
 }
 
 /* ============================================================
-   DENSIDADE — alvo de toque minimo (touch targets)
-   Mobile (default): comfortable, >=44px conforme WCAG 2.2.
-   Desktop (>=1024px): compact, 32px aceitavel.
+   LIGHT MODE — re-aponta a camada semântica.
+   Ativada via [data-theme="light"] no <html>. Setada antes da hidratação
+   via inline script no layout pra evitar FOUC.
    ============================================================ */
+[data-theme="light"] {
+  /* Surfaces */
+  --color-surface-base: #faf7ee;
+  --color-surface-raised: #ffffff;
+  --color-surface-deep: #f0ece1;
+  --color-surface-accent: #d6e2c8;
+  --color-surface-glow: #f5f1e6;
+
+  /* Texto */
+  --color-text-primary: #2a2520;
+  --color-text-secondary: #4a4036;
+  --color-text-dim: #6b665d;
+  --color-text-label: #574e44;
+  --color-text-disabled: #a8a094;
+
+  /* Bordas */
+  --color-border-default: #d8d3c4;
+  --color-border-strong: #9bbf88;
+  --color-border-divider: #e8e2d0;
+
+  /* Acentos */
+  --color-accent: #a85a3a;
+  --color-accent-cta: #a85a3a;
+  --color-accent-cta-fg: #faf7ee;
+  --color-accent-hover: #8c4a2a;
+
+  /* Status */
+  --color-status-ok: #4a6b45;
+  --color-status-ok-text: #2f4a2c;
+  --color-status-warn: #a85a3a;
+  --color-status-warn-text: #8c4a2a;
+  --color-status-critical: #c84a4a;
+  --color-status-critical-deep: #f5d4d4;
+  --color-status-critical-text: #8a1f1f;
+  --color-status-idle: #d8d3c4;
+  --color-status-idle-text: #6b665d;
+
+  --color-focus-ring: #a85a3a;
+
+  color-scheme: light;
+}
+
+[data-theme="light"] body {
+  background-color: var(--color-surface-base);
+  background-image:
+    radial-gradient(at 18% 12%, rgba(47, 74, 44, 0.08) 0px, transparent 55%),
+    radial-gradient(at 82% 88%, rgba(168, 90, 58, 0.05) 0px, transparent 50%);
+}
+
+[data-theme="light"] .surface-raised {
+  background: #ffffff;
+  border: 0.5px solid var(--color-border-default);
+  box-shadow:
+    0 1px 0 0 rgba(0, 0, 0, 0.02) inset,
+    0 1px 2px 0 rgba(0, 0, 0, 0.04);
+}
+
+[data-theme="light"] .surface-jungle {
+  background: linear-gradient(180deg, #d6e2c8 0%, #c1d2b0 100%);
+  border: 0.5px solid #9bbf88;
+}
+
+[data-theme="light"] .surface-deep {
+  background: #f0ece1;
+  border: 0.5px solid var(--color-border-default);
+}
 :root {
   --touch-min: 44px;
 }
@@ -253,6 +319,23 @@ body {
 .animate-shimmer {
   background-size: 200% 100%;
   animation: shimmer 3s linear infinite;
+}
+
+/* Skeleton — bloco placeholder enquanto dados carregam */
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 0.45; }
+  50% { opacity: 0.75; }
+}
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--color-card-deep) 0%,
+    var(--color-card-raised) 50%,
+    var(--color-card-deep) 100%
+  );
+  background-size: 200% 100%;
+  border-radius: var(--radius-card);
+  animation: skeleton-pulse 1.6s ease-in-out infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {

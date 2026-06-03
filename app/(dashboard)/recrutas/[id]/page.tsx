@@ -12,7 +12,8 @@ import { FeedbackBanner } from "@/components/squad/feedback-banner";
 import { StatusPill } from "@/components/ui/status-pill";
 import { buttonVariants } from "@/components/ui/button";
 import { RecruitStatusActions } from "@/components/recruta/recruit-status-actions";
-import { getRecruitById } from "@/lib/queries/recruit";
+import { getRecruitRichDetails } from "@/lib/queries/recruit";
+import { NpsChart } from "@/components/recruta/nps-chart";
 
 export const dynamic = "force-dynamic";
 
@@ -55,8 +56,12 @@ function formatDate(date: Date): string {
 
 export async function generateMetadata({ params }: { params: Params }) {
   const { id } = await params;
-  const recruit = await getRecruitById(id);
-  return { title: recruit ? `${recruit.name} — Squad Five` : "Recruta — Squad Five" };
+  const data = await getRecruitRichDetails(id);
+  return {
+    title: data
+      ? `${data.recruit.name} — Squad Five`
+      : "Recruta — Squad Five",
+  };
 }
 
 export default async function RecrutaDetalhePage({
@@ -68,11 +73,14 @@ export default async function RecrutaDetalhePage({
 }) {
   const { id } = await params;
   const sp = await searchParams;
-  const recruit = await getRecruitById(id);
+  const data = await getRecruitRichDetails(id);
 
-  if (!recruit) {
+  if (!data) {
     notFound();
   }
+
+  const { recruit, briefings, avgNps, npsCount, lastBriefing, nextBriefing } =
+    data;
 
   const justKey = Array.isArray(sp.just) ? sp.just[0] : sp.just;
   const justMessage = justKey ? JUST_MESSAGES[justKey] : undefined;
@@ -250,7 +258,45 @@ export default async function RecrutaDetalhePage({
                 {recruit.operations.length}
               </span>
             </div>
+            <div className="flex items-center justify-between">
+              <span className="text-text-secondary text-[12px]">NPS médio</span>
+              <span className="font-mono text-bronze text-[13px] tabular-nums">
+                {avgNps !== null ? avgNps.toFixed(1) : "—"}
+                {npsCount > 0 ? (
+                  <span className="text-text-dim text-[10px] ml-1">
+                    ({npsCount})
+                  </span>
+                ) : null}
+              </span>
+            </div>
+            {lastBriefing ? (
+              <div className="flex items-center justify-between">
+                <span className="text-text-secondary text-[12px]">
+                  Último briefing
+                </span>
+                <span className="font-mono text-text-primary text-[11px]">
+                  {formatDate(lastBriefing.date)}
+                </span>
+              </div>
+            ) : null}
+            {nextBriefing ? (
+              <div className="flex items-center justify-between">
+                <span className="text-bronze text-[12px]">Próximo briefing</span>
+                <span className="font-mono text-bronze text-[11px]">
+                  {formatDate(nextBriefing.date)}
+                </span>
+              </div>
+            ) : null}
           </section>
+
+          {briefings.length > 0 ? (
+            <section className="surface-raised p-5 flex flex-col gap-2">
+              <h2 className="label-display text-[11px] text-text-secondary">
+                Histórico de NPS
+              </h2>
+              <NpsChart briefings={briefings} />
+            </section>
+          ) : null}
 
           <section className="surface-raised p-5 flex flex-col gap-3">
             <h2 className="label-display text-[11px] text-text-secondary">

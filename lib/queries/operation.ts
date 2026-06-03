@@ -147,7 +147,6 @@ export async function getOperationById(id: string) {
         },
       },
       gaps: {
-        where: { status: { not: "RESOLVIDO" } },
         orderBy: { createdAt: "desc" },
       },
     },

@@ -57,6 +57,46 @@ export async function getRecruitById(id: string) {
   });
 }
 
+export async function getRecruitRichDetails(id: string) {
+  const [recruit, briefings] = await Promise.all([
+    getRecruitById(id),
+    prisma.briefing.findMany({
+      where: { operation: { recruitId: id } },
+      orderBy: { date: "desc" },
+      take: 20,
+      select: {
+        id: true,
+        date: true,
+        npsScore: true,
+        operation: { select: { id: true, codeName: true } },
+      },
+    }),
+  ]);
+
+  if (!recruit) return null;
+
+  const npsScored = briefings.filter((b) => b.npsScore !== null);
+  const avgNps =
+    npsScored.length > 0
+      ? npsScored.reduce((acc, b) => acc + (b.npsScore ?? 0), 0) /
+        npsScored.length
+      : null;
+
+  const now = Date.now();
+  const upcomingBriefings = briefings.filter((b) => b.date.getTime() > now);
+  const nextBriefing = upcomingBriefings[upcomingBriefings.length - 1] ?? null;
+  const lastBriefing = briefings.find((b) => b.date.getTime() <= now) ?? null;
+
+  return {
+    recruit,
+    briefings,
+    avgNps,
+    npsCount: npsScored.length,
+    nextBriefing,
+    lastBriefing,
+  };
+}
+
 export async function countRecruitsByStatus() {
   const grouped = await prisma.recruit.groupBy({
     by: ["status"],

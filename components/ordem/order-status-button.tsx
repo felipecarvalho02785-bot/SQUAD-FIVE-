@@ -1,14 +1,16 @@
 "use client";
 
-import { useTransition } from "react";
+import { useOptimistic, useTransition } from "react";
 import { OrderStatus } from "@prisma/client";
 import { IconCheck, IconCircle, IconClock } from "@tabler/icons-react";
-import { updateOrderStatusAction } from "@/lib/actions/order";
+import { toast } from "sonner";
+import { updateOrderStatusOnlyAction } from "@/lib/actions/order";
 import { cn } from "@/lib/utils";
 
 /*
-  OrderStatusButton — botao circular que cicla A_FAZER -> EM_ANDAMENTO
-  -> CUMPRIDA -> A_FAZER. Usa Server Action por baixo.
+  OrderStatusButton — cicla A_FAZER → EM_ANDAMENTO → CUMPRIDA → A_FAZER.
+  useOptimistic atualiza visualmente na hora, Server Action sincroniza
+  em background, toast confirma sucesso/erro.
 */
 
 const NEXT: Record<OrderStatus, OrderStatus> = {
@@ -23,10 +25,17 @@ const LABEL: Record<OrderStatus, string> = {
   CUMPRIDA: "Cumprida — clique para reabrir",
 };
 
+const TOAST: Record<OrderStatus, string> = {
+  A_FAZER: "Ordem reaberta",
+  EM_ANDAMENTO: "Ordem em andamento",
+  CUMPRIDA: "Missão cumprida.",
+};
+
 interface OrderStatusButtonProps {
   orderId: string;
   status: OrderStatus;
-  redirectTo: string;
+  /** Mantido por compatibilidade. Não é mais usado — não redireciona. */
+  redirectTo?: string;
   size?: "sm" | "md";
   className?: string;
 }
@@ -34,46 +43,58 @@ interface OrderStatusButtonProps {
 export function OrderStatusButton({
   orderId,
   status,
-  redirectTo,
   size = "md",
   className,
 }: OrderStatusButtonProps) {
   const [pending, startTransition] = useTransition();
+  const [optimisticStatus, setOptimisticStatus] = useOptimistic(
+    status,
+    (_prev: OrderStatus, next: OrderStatus) => next,
+  );
 
   const Icon =
-    status === OrderStatus.CUMPRIDA
+    optimisticStatus === OrderStatus.CUMPRIDA
       ? IconCheck
-      : status === OrderStatus.EM_ANDAMENTO
+      : optimisticStatus === OrderStatus.EM_ANDAMENTO
         ? IconClock
         : IconCircle;
+
+  function handleClick() {
+    const next = NEXT[optimisticStatus];
+    startTransition(async () => {
+      setOptimisticStatus(next);
+      const result = await updateOrderStatusOnlyAction(orderId, next);
+      if (result.ok) {
+        toast.success(TOAST[next]);
+      } else {
+        toast.error("Falha ao atualizar status.");
+      }
+    });
+  }
 
   return (
     <button
       type="button"
-      aria-label={LABEL[status]}
+      aria-label={LABEL[optimisticStatus]}
       disabled={pending}
-      onClick={() =>
-        startTransition(async () => {
-          await updateOrderStatusAction(orderId, NEXT[status], redirectTo);
-        })
-      }
+      onClick={handleClick}
       className={cn(
         "shrink-0 inline-flex items-center justify-center rounded-full border transition-all",
         "min-h-11 min-w-11 lg:min-h-9 lg:min-w-9",
         size === "sm" ? "w-7 h-7" : "w-8 h-8",
-        status === OrderStatus.CUMPRIDA &&
+        optimisticStatus === OrderStatus.CUMPRIDA &&
           "bg-status-ok border-status-ok text-accent-cta-fg",
-        status === OrderStatus.EM_ANDAMENTO &&
+        optimisticStatus === OrderStatus.EM_ANDAMENTO &&
           "bg-surface-accent border-border-strong text-bronze",
-        status === OrderStatus.A_FAZER &&
+        optimisticStatus === OrderStatus.A_FAZER &&
           "bg-surface-deep border-border-default text-text-dim hover:border-border-strong hover:text-text-primary",
-        pending && "opacity-60 cursor-wait",
+        pending && "opacity-70",
         className,
       )}
     >
       <Icon
         size={size === "sm" ? 12 : 14}
-        stroke={status === OrderStatus.CUMPRIDA ? 2.5 : 1.5}
+        stroke={optimisticStatus === OrderStatus.CUMPRIDA ? 2.5 : 1.5}
         aria-hidden
       />
     </button>

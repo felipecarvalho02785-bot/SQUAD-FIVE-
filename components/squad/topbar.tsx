@@ -1,14 +1,11 @@
 import Link from "next/link";
-import {
-  IconBell,
-  IconSearch,
-  IconSettings,
-  IconLogout,
-  IconCommand,
-} from "@tabler/icons-react";
+import { IconSettings, IconLogout } from "@tabler/icons-react";
 import { signOut } from "@/lib/auth";
 import { Mascot } from "./mascot";
 import { TopbarNav, type NavItem } from "./topbar-nav";
+import { ThemeToggle } from "./theme-toggle";
+import { CommandPaletteTrigger } from "./command-palette";
+import { NotificationBell } from "./notification-bell";
 import { cn } from "@/lib/utils";
 
 /*
@@ -147,17 +144,7 @@ export function Topbar({
       </div>
 
       <div className="flex items-center gap-1.5">
-        <button
-          type="button"
-          aria-label="Buscar (Ctrl + K)"
-          className="hidden md:flex items-center gap-2 h-9 px-3 rounded-full bg-surface-deep border border-border-default text-text-dim hover:text-text-primary hover:border-border-strong transition-all"
-        >
-          <IconSearch size={14} stroke={1.5} aria-hidden />
-          <span className="text-[11px]">Buscar</span>
-          <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-surface-base border border-border-default text-[10px] font-mono text-text-dim">
-            <IconCommand size={9} stroke={1.5} aria-hidden />K
-          </span>
-        </button>
+        <CommandPaletteTrigger />
 
         <Link
           href="/quartel"
@@ -170,21 +157,9 @@ export function Topbar({
           <IconSettings size={16} stroke={1.5} aria-hidden />
         </Link>
 
-        <button
-          type="button"
-          aria-label={`Notificações${unreadCount > 0 ? ` (${unreadCount} não lidas)` : ""}`}
-          className="relative min-w-11 min-h-11 lg:min-w-9 lg:min-h-9 w-9 h-9 rounded-full flex items-center justify-center text-text-dim hover:text-text-primary hover:bg-surface-deep transition-colors"
-        >
-          <IconBell size={16} stroke={1.5} aria-hidden />
-          {unreadCount > 0 ? (
-            <span
-              className="absolute top-1.5 right-1.5 min-w-[14px] h-[14px] px-1 rounded-full bg-status-critical text-[9px] font-medium text-text-primary flex items-center justify-center leading-none"
-              aria-hidden
-            >
-              {unreadCount > 9 ? "9+" : unreadCount}
-            </span>
-          ) : null}
-        </button>
+        <ThemeToggle />
+
+        <NotificationBell unreadCount={unreadCount} />
 
         <div
           className="w-8 h-8 rounded-full bg-gradient-to-br from-accent to-status-ok text-accent-cta-fg font-display font-medium text-[12px] tracking-[0.05em] flex items-center justify-center ring-2 ring-border-default"
