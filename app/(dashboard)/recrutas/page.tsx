@@ -6,7 +6,12 @@ import { buttonVariants } from "@/components/ui/button";
 import { RecruitListCard } from "@/components/recruta/recruit-list-card";
 import { RecruitFilters } from "@/components/recruta/recruit-filters";
 import { FilterChips, type FilterChip } from "@/components/squad/filter-chips";
-import { listRecruits, countRecruitsByStatus } from "@/lib/queries/recruit";
+import {
+  listRecruits,
+  countRecruitsByStatus,
+  type RecruitSort,
+} from "@/lib/queries/recruit";
+import { SortDropdown } from "@/components/squad/sort-dropdown";
 import { recruitFilterSchema } from "@/lib/schemas/recruit";
 
 export const metadata = {
@@ -68,8 +73,16 @@ export default async function RecrutasPage({
     ? parsed.data
     : { q: undefined, status: "all" as const };
 
+  const sortParam = asString(params.sort) as RecruitSort;
+  const validSort: RecruitSort =
+    sortParam === "oldest" ||
+    sortParam === "name" ||
+    sortParam === "name-desc"
+      ? sortParam
+      : "recent";
+
   const [recrutas, counts] = await Promise.all([
-    listRecruits(filter),
+    listRecruits(filter, validSort),
     countRecruitsByStatus(),
   ]);
 
@@ -100,10 +113,21 @@ export default async function RecrutasPage({
         }
       />
 
-      <RecruitFilters
-        query={filter.q ?? ""}
-        status={filter.status as RecruitStatus | "all"}
-      />
+      <div className="flex items-start justify-between gap-3 flex-wrap">
+        <RecruitFilters
+          query={filter.q ?? ""}
+          status={filter.status as RecruitStatus | "all"}
+        />
+        <SortDropdown
+          options={[
+            { value: "recent", label: "Mais recentes" },
+            { value: "oldest", label: "Mais antigos" },
+            { value: "name", label: "Nome A-Z" },
+            { value: "name-desc", label: "Nome Z-A" },
+          ]}
+          current={validSort}
+        />
+      </div>
 
       <FilterChips chips={buildChips(filter)} />
 

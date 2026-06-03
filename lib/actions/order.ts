@@ -40,6 +40,12 @@ function parse(formData: FormData) {
     externalAssignee: String(formData.get("externalAssignee") ?? ""),
     dueDate: String(formData.get("dueDate") ?? ""),
     status: (formData.get("status") as OrderStatus) ?? OrderStatus.A_FAZER,
+    isRecurring: formData.get("isRecurring")
+      ? String(formData.get("isRecurring"))
+      : undefined,
+    recurringFrequency: String(formData.get("recurringFrequency") ?? ""),
+    recurringDayOfWeek: String(formData.get("recurringDayOfWeek") ?? ""),
+    recurringDayOfMonth: String(formData.get("recurringDayOfMonth") ?? ""),
   };
 }
 
@@ -68,6 +74,15 @@ export async function createOrderAction(
 
   const data = parsed.data;
   const session = await auth();
+
+  const recurring = data.isRecurring && data.recurringFrequency
+    ? {
+        frequency: data.recurringFrequency,
+        dayOfWeek: data.recurringDayOfWeek ?? null,
+        dayOfMonth: data.recurringDayOfMonth ?? null,
+      }
+    : null;
+
   const created = await prisma.order.create({
     data: {
       title: data.title,
@@ -78,6 +93,7 @@ export async function createOrderAction(
       externalAssignee: data.externalAssignee ?? null,
       dueDate: data.dueDate ?? null,
       status: data.status,
+      recurring: recurring ?? undefined,
     },
     include: {
       stage: { select: { operationId: true } },
@@ -154,4 +170,41 @@ export async function deleteOrderAction(
   await prisma.order.delete({ where: { id: orderId } });
   await revalidateOrderContext(order.stage?.operationId);
   redirect(`${redirectTo}?just=order-deleted`);
+}
+
+/**
+ * Bulk update — atualiza várias ordens de uma vez. Usado pra
+ * "marcar todas como cumpridas" no painel de Ordens.
+ */
+export async function bulkUpdateOrdersStatusAction(
+  orderIds: string[],
+  status: OrderStatus,
+): Promise<ActionResult> {
+  await requireSession();
+  if (orderIds.length === 0) {
+    return { ok: false, error: "Nenhuma ordem selecionada." };
+  }
+  await prisma.order.updateMany({
+    where: { id: { in: orderIds } },
+    data: {
+      status,
+      completedAt: status === OrderStatus.CUMPRIDA ? new Date() : null,
+    },
+  });
+  await revalidateOrderContext(null);
+  return { ok: true };
+}
+
+export async function bulkDeleteOrdersAction(
+  orderIds: string[],
+): Promise<ActionResult> {
+  await requireSession();
+  if (orderIds.length === 0) {
+    return { ok: false, error: "Nenhuma ordem selecionada." };
+  }
+  await prisma.order.deleteMany({
+    where: { id: { in: orderIds } },
+  });
+  await revalidateOrderContext(null);
+  return { ok: true };
 }

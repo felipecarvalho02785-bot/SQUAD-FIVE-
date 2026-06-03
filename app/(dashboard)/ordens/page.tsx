@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { IconCheckbox } from "@tabler/icons-react";
 import { auth } from "@/lib/auth";
 import { PageHeader } from "@/components/squad/page-header";
-import { OrderListItem } from "@/components/ordem/order-list-item";
+import { OrdersBulkList } from "@/components/ordem/orders-bulk-list";
 import { FeedbackBanner } from "@/components/squad/feedback-banner";
 import { listMyOrders } from "@/lib/queries/order";
 
@@ -175,19 +175,11 @@ function OrderSection({
         </h2>
         <span className={`font-mono text-[11px] ${toneClass}`}>{count}</span>
       </header>
-      {orders.length === 0 ? (
-        <p className="py-4 text-center text-text-dim text-[12px]">
-          {emptyLabel ?? "Nada por aqui."}
-        </p>
-      ) : (
-        <ul className="flex flex-col gap-2">
-          {orders.map((order) => (
-            <li key={order.id}>
-              <OrderListItem order={order} redirectTo="/ordens" />
-            </li>
-          ))}
-        </ul>
-      )}
+      <OrdersBulkList
+        orders={orders}
+        redirectTo="/ordens"
+        emptyLabel={emptyLabel}
+      />
     </section>
   );
 }

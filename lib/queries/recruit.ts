@@ -2,14 +2,12 @@ import { Prisma, RecruitStatus } from "@prisma/client";
 import { prisma } from "@/lib/db/prisma";
 import type { RecruitFilter } from "@/lib/schemas/recruit";
 
-/*
-  Queries de leitura de Recrutas.
-  Sempre executadas server-side (Server Components ou Server Actions).
-*/
+export type RecruitSort = "recent" | "oldest" | "name" | "name-desc";
 
-export type RecruitListItem = Awaited<ReturnType<typeof listRecruits>>[number];
-
-export async function listRecruits(filter: RecruitFilter = { status: "all" }) {
+export async function listRecruits(
+  filter: RecruitFilter = { status: "all" },
+  sort: RecruitSort = "recent",
+) {
   const where: Prisma.RecruitWhereInput = {};
 
   if (filter.q && filter.q.trim()) {
@@ -25,9 +23,18 @@ export async function listRecruits(filter: RecruitFilter = { status: "all" }) {
     where.status = filter.status;
   }
 
+  const orderBy: Prisma.RecruitOrderByWithRelationInput =
+    sort === "oldest"
+      ? { createdAt: "asc" }
+      : sort === "name"
+        ? { name: "asc" }
+        : sort === "name-desc"
+          ? { name: "desc" }
+          : { createdAt: "desc" };
+
   return prisma.recruit.findMany({
     where,
-    orderBy: [{ createdAt: "desc" }],
+    orderBy: [orderBy],
     select: {
       id: true,
       name: true,
@@ -42,6 +49,8 @@ export async function listRecruits(filter: RecruitFilter = { status: "all" }) {
     },
   });
 }
+
+export type RecruitListItem = Awaited<ReturnType<typeof listRecruits>>[number];
 
 export async function getRecruitById(id: string) {
   return prisma.recruit.findUnique({

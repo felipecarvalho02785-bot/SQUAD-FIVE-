@@ -10,6 +10,7 @@ const ORDER_SELECT = {
   dueDate: true,
   completedAt: true,
   externalAssignee: true,
+  recurring: true,
   createdAt: true,
   assignee: { select: { id: true, name: true, email: true } },
   stage: {
