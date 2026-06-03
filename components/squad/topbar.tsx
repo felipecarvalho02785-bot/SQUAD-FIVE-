@@ -7,6 +7,7 @@ import { ThemeToggle } from "./theme-toggle";
 import { CommandPaletteTrigger } from "./command-palette";
 import { NotificationBell } from "./notification-bell";
 import { cn } from "@/lib/utils";
+import type { NotificationItem } from "@/lib/queries/notification";
 
 /*
   Topbar v2 — barra superior fixa do dashboard.
@@ -23,6 +24,7 @@ interface TopbarProps {
   userName?: string | null;
   userEmail?: string | null;
   unreadCount?: number;
+  notifications?: NotificationItem[];
   navCounts?: {
     comando?: number;
     recrutas?: number;
@@ -61,6 +63,7 @@ export function Topbar({
   userName,
   userEmail,
   unreadCount = 0,
+  notifications = [],
   navCounts = {},
   isAdmin = false,
 }: TopbarProps) {
@@ -159,7 +162,10 @@ export function Topbar({
 
         <ThemeToggle />
 
-        <NotificationBell unreadCount={unreadCount} />
+        <NotificationBell
+          unreadCount={unreadCount}
+          notifications={notifications}
+        />
 
         <div
           className="w-8 h-8 rounded-full bg-gradient-to-br from-accent to-status-ok text-accent-cta-fg font-display font-medium text-[12px] tracking-[0.05em] flex items-center justify-center ring-2 ring-border-default"

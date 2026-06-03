@@ -3,6 +3,7 @@ import { OperationStatus } from "@prisma/client";
 import { IconTargetArrow } from "@tabler/icons-react";
 import { PageHeader } from "@/components/squad/page-header";
 import { HealthBar } from "@/components/squad/health-bar";
+import { FilterChips, type FilterChip } from "@/components/squad/filter-chips";
 import { buttonVariants } from "@/components/ui/button";
 import { OperationListCard } from "@/components/operacao/operation-list-card";
 import { listOperations, countOperationHealth } from "@/lib/queries/operation";
@@ -47,6 +48,50 @@ function buildHref(
   const qs = params.toString();
   void base;
   return `/operacoes${qs ? `?${qs}` : ""}`;
+}
+
+function buildOperationChips(filter: {
+  status?: OperationStatus | "all";
+  health?: string;
+}): FilterChip[] {
+  const chips: FilterChip[] = [];
+  if (filter.status && filter.status !== "all") {
+    const labels: Record<OperationStatus, string> = {
+      ATIVA: "Ativas",
+      PAUSADA: "Pausadas",
+      ENCERRADA: "Encerradas",
+    };
+    chips.push({
+      param: "status",
+      label: labels[filter.status],
+      tone:
+        filter.status === OperationStatus.PAUSADA
+          ? "warn"
+          : filter.status === OperationStatus.ENCERRADA
+            ? "default"
+            : "ok",
+    });
+  }
+  if (filter.health && filter.health !== "all") {
+    const labels: Record<string, string> = {
+      em_campo: "Em campo",
+      atencao: "Em atenção",
+      baixa_iminente: "Baixa iminente",
+      extracao: "Extração",
+    };
+    const tones: Record<string, FilterChip["tone"]> = {
+      em_campo: "ok",
+      atencao: "warn",
+      baixa_iminente: "critical",
+      extracao: "default",
+    };
+    chips.push({
+      param: "health",
+      label: labels[filter.health] ?? filter.health,
+      tone: tones[filter.health],
+    });
+  }
+  return chips;
 }
 
 export default async function OperacoesPage({
@@ -157,6 +202,8 @@ export default async function OperacoesPage({
             );
           })}
         </nav>
+
+        <FilterChips chips={buildOperationChips(filter)} />
       </div>
 
       {operacoes.length === 0 ? (

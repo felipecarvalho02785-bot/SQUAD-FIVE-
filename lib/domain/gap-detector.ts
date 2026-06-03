@@ -6,6 +6,7 @@ import {
   StageStatus,
 } from "@prisma/client";
 import { prisma } from "@/lib/db/prisma";
+import { notifyGapOpen } from "./notification-emitter";
 
 /*
   Detector de gaps automaticos.
@@ -45,6 +46,7 @@ export async function detectAllGaps(now: Date = new Date()): Promise<GapDetectio
         },
       },
       gaps: { where: { source: GapSource.AUTOMATIC, status: { not: GapStatus.RESOLVIDO } } },
+      owner: { select: { id: true } },
     },
   });
 
@@ -75,6 +77,13 @@ export async function detectAllGaps(now: Date = new Date()): Promise<GapDetectio
         },
       });
       created += 1;
+      if (op.owner?.id) {
+        await notifyGapOpen({
+          operationId: op.id,
+          ownerId: op.owner.id,
+          description: `SLA estourado na etapa "${currentStage.name}".`,
+        });
+      }
     } else if (!slaExceeded && slaGap) {
       await prisma.gap.update({
         where: { id: slaGap.id },
@@ -104,6 +113,13 @@ export async function detectAllGaps(now: Date = new Date()): Promise<GapDetectio
         },
       });
       created += 1;
+      if (op.owner?.id) {
+        await notifyGapOpen({
+          operationId: op.id,
+          ownerId: op.owner.id,
+          description: `${overdueOrders.length} ordem(ns) atrasada(s).`,
+        });
+      }
     } else if (overdueOrders.length === 0 && overdueGap) {
       await prisma.gap.update({
         where: { id: overdueGap.id },

@@ -10,6 +10,7 @@ import {
   operationInputSchema,
   type OperationInput,
 } from "@/lib/schemas/operation";
+import { notifyOperationRisk } from "@/lib/domain/notification-emitter";
 
 export type ActionResult =
   | { ok: true }
@@ -157,10 +158,21 @@ export async function advanceStageAction(
     }
   });
 
+  // Notifica owner se houve transição relevante
+  if (op.ownerId) {
+    if (!next) {
+      await notifyOperationRisk({
+        operationId,
+        ownerId: op.ownerId,
+        reason: "Operação encerrada — última etapa cumprida.",
+      });
+    }
+  }
+
   revalidatePath("/operacoes");
   revalidatePath(`/operacoes/${operationId}`);
   revalidatePath("/comando");
-  redirect(`/operacoes/${operationId}?just=advanced`);
+  redirect(`/operacoes/${operationId}?just=advanced${!next ? "&completed=true" : ""}`);
 }
 
 export async function pauseOperationAction(

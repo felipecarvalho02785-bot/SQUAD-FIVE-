@@ -5,12 +5,14 @@ import {
   IconArrowLeft,
   IconCalendar,
   IconChecklist,
+  IconPrinter,
   IconTarget,
   IconUser,
   IconUsersGroup,
 } from "@tabler/icons-react";
 import { PageHeader } from "@/components/squad/page-header";
 import { FeedbackBanner } from "@/components/squad/feedback-banner";
+import { ConfettiBurst } from "@/components/squad/confetti-burst";
 import { StatusIndicator } from "@/components/ui/status-indicator";
 import { StatusPill } from "@/components/ui/status-pill";
 import { buttonVariants } from "@/components/ui/button";
@@ -128,6 +130,7 @@ export default async function OperacaoDetalhePage({
 
   const justKey = Array.isArray(sp.just) ? sp.just[0] : sp.just;
   const justMessage = justKey ? JUST_MESSAGES[justKey] : undefined;
+  const completed = sp.completed === "true";
 
   const currentStage = operation.stages.find(
     (s) => s.status === StageStatus.EM_ANDAMENTO,
@@ -151,6 +154,7 @@ export default async function OperacaoDetalhePage({
       </Link>
 
       {justMessage ? <FeedbackBanner message={justMessage} /> : null}
+      {completed ? <ConfettiBurst intensity="full" /> : null}
 
       <PageHeader
         title={operation.codeName}
@@ -167,12 +171,20 @@ export default async function OperacaoDetalhePage({
           </>
         }
         actions={
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <StatusIndicator status={operation.health} size="md" />
             <StatusPill
               status={HEALTH_PILL_MAP[operation.health]}
               label={HEALTH_LABEL[operation.health]}
             />
+            <Link
+              href={`/operacoes/${operation.id}/imprimir`}
+              target="_blank"
+              className={buttonVariants({ variant: "secondary", size: "md" })}
+            >
+              <IconPrinter size={14} aria-hidden />
+              Status report
+            </Link>
           </div>
         }
       />

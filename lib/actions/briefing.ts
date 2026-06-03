@@ -9,6 +9,7 @@ import {
   briefingInputSchema,
   type BriefingInput,
 } from "@/lib/schemas/briefing";
+import { notifyBriefingSoon } from "@/lib/domain/notification-emitter";
 
 export type ActionResult =
   | { ok: true }
@@ -66,8 +67,23 @@ export async function createBriefingAction(
     },
   });
 
+  // Notifica owner da operação sobre briefing próximo (se for futuro)
+  const operation = await prisma.operation.findUnique({
+    where: { id: data.operationId },
+    select: { ownerId: true },
+  });
+  if (operation?.ownerId && data.date.getTime() > Date.now()) {
+    await notifyBriefingSoon({
+      briefingId: created.id,
+      operationId: data.operationId,
+      ownerId: operation.ownerId,
+    });
+  }
+
   revalidatePath("/briefings");
   revalidatePath("/comando");
   revalidatePath(`/operacoes/${data.operationId}`);
-  redirect(`/operacoes/${data.operationId}?just=briefing-registered&briefingId=${created.id}`);
+  redirect(
+    `/operacoes/${data.operationId}?just=briefing-registered&briefingId=${created.id}`,
+  );
 }

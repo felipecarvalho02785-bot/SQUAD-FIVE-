@@ -5,6 +5,7 @@ import { PageHeader } from "@/components/squad/page-header";
 import { buttonVariants } from "@/components/ui/button";
 import { RecruitListCard } from "@/components/recruta/recruit-list-card";
 import { RecruitFilters } from "@/components/recruta/recruit-filters";
+import { FilterChips, type FilterChip } from "@/components/squad/filter-chips";
 import { listRecruits, countRecruitsByStatus } from "@/lib/queries/recruit";
 import { recruitFilterSchema } from "@/lib/schemas/recruit";
 
@@ -19,6 +20,38 @@ type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 function asString(value: string | string[] | undefined): string {
   if (Array.isArray(value)) return value[0] ?? "";
   return value ?? "";
+}
+
+function buildChips(filter: {
+  q?: string;
+  status?: RecruitStatus | "all";
+}): FilterChip[] {
+  const chips: FilterChip[] = [];
+  if (filter.q && filter.q.trim()) {
+    chips.push({
+      param: "q",
+      label: `"${filter.q}"`,
+      tone: "default",
+    });
+  }
+  if (filter.status && filter.status !== "all") {
+    const labels: Record<RecruitStatus, string> = {
+      ATIVO: "Ativos",
+      PAUSADO: "Pausados",
+      BAIXA: "Baixas",
+    };
+    chips.push({
+      param: "status",
+      label: labels[filter.status],
+      tone:
+        filter.status === RecruitStatus.BAIXA
+          ? "critical"
+          : filter.status === RecruitStatus.PAUSADO
+            ? "warn"
+            : "ok",
+    });
+  }
+  return chips;
 }
 
 export default async function RecrutasPage({
@@ -71,6 +104,8 @@ export default async function RecrutasPage({
         query={filter.q ?? ""}
         status={filter.status as RecruitStatus | "all"}
       />
+
+      <FilterChips chips={buildChips(filter)} />
 
       {recrutas.length === 0 ? (
         <section className="surface-raised p-10 flex flex-col items-center text-center gap-4">
