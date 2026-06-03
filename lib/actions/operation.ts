@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import type { z } from "zod";
-import { OperationStatus, StageStatus } from "@prisma/client";
+import { ActivityType, OperationStatus, StageStatus } from "@prisma/client";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db/prisma";
 import {
@@ -11,6 +11,7 @@ import {
   type OperationInput,
 } from "@/lib/schemas/operation";
 import { notifyOperationRisk } from "@/lib/domain/notification-emitter";
+import { logActivity } from "@/lib/domain/activity-logger";
 
 export type ActionResult =
   | { ok: true }
@@ -102,6 +103,16 @@ export async function createOperationAction(
     return op;
   });
 
+  const session = await auth();
+  await logActivity({
+    type: ActivityType.OPERATION_MOBILIZED,
+    actorId: session?.user?.id ?? null,
+    operationId: operation.id,
+    recruitId: data.recruitId,
+    description: `Operação "${data.codeName}" mobilizada (${product.name}).`,
+    payload: { productId: data.productId, codeName: data.codeName },
+  });
+
   revalidatePath("/operacoes");
   revalidatePath(`/recrutas/${data.recruitId}`);
   revalidatePath("/comando");
@@ -158,6 +169,25 @@ export async function advanceStageAction(
     }
   });
 
+  const session = await auth();
+
+  await logActivity({
+    type: ActivityType.STAGE_ADVANCED,
+    actorId: session?.user?.id ?? null,
+    operationId,
+    description: `Etapa "${stage.name}" cumprida${next ? `, próxima "${next.name}" iniciada` : ", operação encerrada"}.`,
+    payload: { stageId: stage.id, stageName: stage.name, completed: !next },
+  });
+
+  if (!next) {
+    await logActivity({
+      type: ActivityType.OPERATION_EXTRACTED,
+      actorId: session?.user?.id ?? null,
+      operationId,
+      description: "Operação encerrada após cumprir todas as etapas.",
+    });
+  }
+
   // Notifica owner se houve transição relevante
   if (op.ownerId) {
     if (!next) {
@@ -178,10 +208,16 @@ export async function advanceStageAction(
 export async function pauseOperationAction(
   operationId: string,
 ): Promise<ActionResult> {
-  await requireSession();
+  const session = await requireSession();
   await prisma.operation.update({
     where: { id: operationId },
     data: { status: OperationStatus.PAUSADA },
+  });
+  await logActivity({
+    type: ActivityType.OPERATION_PAUSED,
+    actorId: session.user?.id ?? null,
+    operationId,
+    description: "Operação pausada.",
   });
   revalidatePath("/operacoes");
   revalidatePath(`/operacoes/${operationId}`);
@@ -192,10 +228,16 @@ export async function pauseOperationAction(
 export async function resumeOperationAction(
   operationId: string,
 ): Promise<ActionResult> {
-  await requireSession();
+  const session = await requireSession();
   await prisma.operation.update({
     where: { id: operationId },
     data: { status: OperationStatus.ATIVA },
+  });
+  await logActivity({
+    type: ActivityType.OPERATION_RESUMED,
+    actorId: session.user?.id ?? null,
+    operationId,
+    description: "Operação retomada.",
   });
   revalidatePath("/operacoes");
   revalidatePath(`/operacoes/${operationId}`);
@@ -206,13 +248,19 @@ export async function resumeOperationAction(
 export async function extractOperationAction(
   operationId: string,
 ): Promise<ActionResult> {
-  await requireSession();
+  const session = await requireSession();
   await prisma.operation.update({
     where: { id: operationId },
     data: {
       status: OperationStatus.ENCERRADA,
       endedAt: new Date(),
     },
+  });
+  await logActivity({
+    type: ActivityType.OPERATION_EXTRACTED,
+    actorId: session.user?.id ?? null,
+    operationId,
+    description: "Operação encerrada manualmente (extração).",
   });
   revalidatePath("/operacoes");
   revalidatePath(`/operacoes/${operationId}`);

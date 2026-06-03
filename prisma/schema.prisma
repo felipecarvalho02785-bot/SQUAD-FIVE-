@@ -79,12 +79,13 @@ model User {
 
   accounts            Account[]
   sessions            Session[]
-  ownedOperations     Operation[]    @relation("OperationOwner")
-  assignedOrders      Order[]        @relation("OrderAssignee")
-  createdBriefings    Briefing[]     @relation("BriefingAuthor")
-  createdGaps         Gap[]          @relation("GapAuthor")
+  ownedOperations     Operation[]     @relation("OperationOwner")
+  assignedOrders      Order[]         @relation("OrderAssignee")
+  createdBriefings    Briefing[]      @relation("BriefingAuthor")
+  createdGaps         Gap[]           @relation("GapAuthor")
   notifications       Notification[]
-  createdLibraryItems LibraryItem[]  @relation("LibraryAuthor")
+  createdLibraryItems LibraryItem[]   @relation("LibraryAuthor")
+  activityEvents      ActivityEvent[] @relation("ActivityActor")
 
   @@map("users")
 }
@@ -109,7 +110,8 @@ model Recruit {
   status         RecruitStatus @default(ATIVO)
   createdAt      DateTime      @default(now()) @map("created_at")
 
-  operations Operation[]
+  operations     Operation[]
+  activityEvents ActivityEvent[]
 
   @@map("recruits")
 }
@@ -162,12 +164,13 @@ model Operation {
   targetEndAt DateTime?       @map("target_end_at")
   endedAt     DateTime?       @map("ended_at")
 
-  recruit   Recruit          @relation(fields: [recruitId], references: [id])
-  product   Product          @relation(fields: [productId], references: [id])
-  owner     User?            @relation("OperationOwner", fields: [ownerId], references: [id])
-  stages    OperationStage[]
-  briefings Briefing[]
-  gaps      Gap[]
+  recruit        Recruit          @relation(fields: [recruitId], references: [id])
+  product        Product          @relation(fields: [productId], references: [id])
+  owner          User?            @relation("OperationOwner", fields: [ownerId], references: [id])
+  stages         OperationStage[]
+  briefings      Briefing[]
+  gaps           Gap[]
+  activityEvents ActivityEvent[]
 
   @@map("operations")
 }
@@ -313,6 +316,44 @@ model LibraryItem {
   @@index([category])
   @@index([createdAt])
   @@map("library_items")
+}
+
+enum ActivityType {
+  OPERATION_MOBILIZED
+  OPERATION_PAUSED
+  OPERATION_RESUMED
+  OPERATION_EXTRACTED
+  STAGE_ADVANCED
+  STAGE_REGRESSED
+  BRIEFING_REGISTERED
+  ORDER_CREATED
+  ORDER_COMPLETED
+  ORDER_DELETED
+  GAP_CREATED
+  GAP_RESOLVED
+  RECRUIT_CREATED
+  RECRUIT_UPDATED
+  MEMBER_PROMOTED
+}
+
+model ActivityEvent {
+  id          String       @id @default(cuid())
+  type        ActivityType
+  actorId     String?      @map("actor_id")
+  operationId String?      @map("operation_id")
+  recruitId   String?      @map("recruit_id")
+  payload     Json?
+  description String?      @db.Text
+  createdAt   DateTime     @default(now()) @map("created_at")
+
+  actor     User?      @relation("ActivityActor", fields: [actorId], references: [id], onDelete: SetNull)
+  operation Operation? @relation(fields: [operationId], references: [id], onDelete: SetNull)
+  recruit   Recruit?   @relation(fields: [recruitId], references: [id], onDelete: SetNull)
+
+  @@index([operationId, createdAt])
+  @@index([recruitId, createdAt])
+  @@index([createdAt])
+  @@map("activity_events")
 }
 
 model Notification {

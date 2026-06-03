@@ -1,5 +1,9 @@
 import Link from "next/link";
-import { IconCalendar, IconArrowUpRight } from "@tabler/icons-react";
+import {
+  IconCalendar,
+  IconArrowUpRight,
+  IconCalendarPlus,
+} from "@tabler/icons-react";
 import type { BriefingItem } from "@/lib/queries/briefing";
 import { cn } from "@/lib/utils";
 
@@ -85,16 +89,27 @@ export function BriefingCard({ briefing, showOperation = true }: BriefingCardPro
         ) : (
           <span />
         )}
-        {briefing.npsScore !== null ? (
-          <span
-            className={cn(
-              "font-mono tabular-nums font-medium shrink-0",
-              npsTone(briefing.npsScore),
-            )}
+        <div className="flex items-center gap-2 shrink-0">
+          <a
+            href={`/briefings/${briefing.id}/calendar.ics`}
+            onClick={(e) => e.stopPropagation()}
+            className="inline-flex items-center gap-1 text-text-dim hover:text-bronze transition-colors"
+            title="Adicionar ao calendário"
+            aria-label="Adicionar ao calendário (.ics)"
           >
-            NPS {briefing.npsScore}
-          </span>
-        ) : null}
+            <IconCalendarPlus size={12} stroke={1.5} aria-hidden />
+          </a>
+          {briefing.npsScore !== null ? (
+            <span
+              className={cn(
+                "font-mono tabular-nums font-medium",
+                npsTone(briefing.npsScore),
+              )}
+            >
+              NPS {briefing.npsScore}
+            </span>
+          ) : null}
+        </div>
       </footer>
     </Link>
   );

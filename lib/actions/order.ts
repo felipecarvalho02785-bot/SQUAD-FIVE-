@@ -3,11 +3,12 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import type { z } from "zod";
-import { OrderStatus } from "@prisma/client";
+import { ActivityType, OrderStatus } from "@prisma/client";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db/prisma";
 import { orderInputSchema, type OrderInput } from "@/lib/schemas/order";
 import { notifyOrderAssigned } from "@/lib/domain/notification-emitter";
+import { logActivity } from "@/lib/domain/activity-logger";
 
 export type ActionResult =
   | { ok: true }
@@ -109,6 +110,14 @@ export async function createOrderAction(
     });
   }
 
+  await logActivity({
+    type: ActivityType.ORDER_CREATED,
+    actorId: session?.user?.id ?? null,
+    operationId: created.stage?.operationId ?? null,
+    description: `Ordem criada: "${data.title}".`,
+    payload: { orderId: created.id, squadTask: created.squadTask },
+  });
+
   await revalidateOrderContext(created.stage?.operationId);
   redirect(`${redirectTo}?just=order-created`);
 }
@@ -122,7 +131,7 @@ export async function updateOrderStatusOnlyAction(
   orderId: string,
   status: OrderStatus,
 ): Promise<ActionResult> {
-  await requireSession();
+  const session = await requireSession();
 
   const updated = await prisma.order.update({
     where: { id: orderId },
@@ -130,8 +139,20 @@ export async function updateOrderStatusOnlyAction(
       status,
       completedAt: status === OrderStatus.CUMPRIDA ? new Date() : null,
     },
-    include: { stage: { select: { operationId: true } } },
+    include: {
+      stage: { select: { operationId: true } },
+    },
   });
+
+  if (status === OrderStatus.CUMPRIDA) {
+    await logActivity({
+      type: ActivityType.ORDER_COMPLETED,
+      actorId: session.user?.id ?? null,
+      operationId: updated.stage?.operationId ?? null,
+      description: `Ordem cumprida: "${updated.title}".`,
+      payload: { orderId },
+    });
+  }
 
   await revalidateOrderContext(updated.stage?.operationId);
   return { ok: true };

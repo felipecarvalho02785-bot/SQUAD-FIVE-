@@ -1,9 +1,10 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { GapSource, GapStatus, GapType } from "@prisma/client";
+import { ActivityType, GapSource, GapStatus, GapType } from "@prisma/client";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db/prisma";
+import { logActivity } from "@/lib/domain/activity-logger";
 
 export interface GapActionResult {
   ok: boolean;
@@ -38,6 +39,12 @@ export async function createManualGapAction(
       createdById: session.user?.id ?? null,
     },
   });
+  await logActivity({
+    type: ActivityType.GAP_CREATED,
+    actorId: session.user?.id ?? null,
+    operationId,
+    description: `Gap registrado: "${trimmed.slice(0, 100)}".`,
+  });
   revalidatePath(`/operacoes/${operationId}`);
   revalidatePath("/comando");
   return { ok: true };
@@ -47,13 +54,20 @@ export async function resolveGapAction(
   gapId: string,
   operationId: string,
 ): Promise<GapActionResult> {
-  await requireSession();
+  const session = await requireSession();
   await prisma.gap.update({
     where: { id: gapId },
     data: {
       status: GapStatus.RESOLVIDO,
       resolvedAt: new Date(),
     },
+  });
+  await logActivity({
+    type: ActivityType.GAP_RESOLVED,
+    actorId: session.user?.id ?? null,
+    operationId,
+    description: "Gap resolvido.",
+    payload: { gapId },
   });
   revalidatePath(`/operacoes/${operationId}`);
   revalidatePath("/comando");

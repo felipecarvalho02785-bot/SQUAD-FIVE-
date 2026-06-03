@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import type { z } from "zod";
+import { ActivityType } from "@prisma/client";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db/prisma";
 import {
@@ -10,6 +11,7 @@ import {
   type BriefingInput,
 } from "@/lib/schemas/briefing";
 import { notifyBriefingSoon } from "@/lib/domain/notification-emitter";
+import { logActivity } from "@/lib/domain/activity-logger";
 
 export type ActionResult =
   | { ok: true }
@@ -65,6 +67,14 @@ export async function createBriefingAction(
       npsScore: data.npsScore ?? null,
       createdById: session.user?.id ?? null,
     },
+  });
+
+  await logActivity({
+    type: ActivityType.BRIEFING_REGISTERED,
+    actorId: session.user?.id ?? null,
+    operationId: data.operationId,
+    description: `Briefing registrado${data.npsScore !== undefined ? ` (NPS ${data.npsScore})` : ""}.`,
+    payload: { briefingId: created.id, npsScore: data.npsScore },
   });
 
   // Notifica owner da operação sobre briefing próximo (se for futuro)

@@ -3,10 +3,11 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import type { z } from "zod";
-import { Prisma, RecruitStatus } from "@prisma/client";
+import { ActivityType, Prisma, RecruitStatus } from "@prisma/client";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db/prisma";
 import { recruitInputSchema, type RecruitInput } from "@/lib/schemas/recruit";
+import { logActivity } from "@/lib/domain/activity-logger";
 
 /*
   Server Actions de Recruta — CRUD basico.
@@ -73,7 +74,7 @@ export async function createRecruitAction(
   _prev: ActionResult | undefined,
   formData: FormData,
 ): Promise<ActionResult> {
-  await requireSession();
+  const session = await requireSession();
 
   const parsed = recruitInputSchema.safeParse(parseFormData(formData));
   if (!parsed.success) {
@@ -86,7 +87,14 @@ export async function createRecruitAction(
 
   const recruit = await prisma.recruit.create({
     data: toPrismaCreate(parsed.data),
-    select: { id: true },
+    select: { id: true, name: true },
+  });
+
+  await logActivity({
+    type: ActivityType.RECRUIT_CREATED,
+    actorId: session.user?.id ?? null,
+    recruitId: recruit.id,
+    description: `Recruta "${recruit.name}" alistado.`,
   });
 
   revalidatePath("/recrutas");
@@ -99,7 +107,7 @@ export async function updateRecruitAction(
   _prev: ActionResult | undefined,
   formData: FormData,
 ): Promise<ActionResult> {
-  await requireSession();
+  const session = await requireSession();
 
   const parsed = recruitInputSchema.safeParse(parseFormData(formData));
   if (!parsed.success) {
@@ -113,6 +121,13 @@ export async function updateRecruitAction(
   await prisma.recruit.update({
     where: { id },
     data: toPrismaCreate(parsed.data),
+  });
+
+  await logActivity({
+    type: ActivityType.RECRUIT_UPDATED,
+    actorId: session.user?.id ?? null,
+    recruitId: id,
+    description: "Ficha do recruta atualizada.",
   });
 
   revalidatePath("/recrutas");
