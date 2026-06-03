@@ -13,7 +13,9 @@ import { StatusPill } from "@/components/ui/status-pill";
 import { buttonVariants } from "@/components/ui/button";
 import { RecruitStatusActions } from "@/components/recruta/recruit-status-actions";
 import { getRecruitRichDetails } from "@/lib/queries/recruit";
+import { listRecruitActivity } from "@/lib/domain/activity-logger";
 import { NpsChart } from "@/components/recruta/nps-chart";
+import { RecruitActivitySection } from "@/components/recruta/recruit-activity-section";
 
 export const dynamic = "force-dynamic";
 
@@ -73,7 +75,10 @@ export default async function RecrutaDetalhePage({
 }) {
   const { id } = await params;
   const sp = await searchParams;
-  const data = await getRecruitRichDetails(id);
+  const [data, activity] = await Promise.all([
+    getRecruitRichDetails(id),
+    listRecruitActivity(id, 30),
+  ]);
 
   if (!data) {
     notFound();
@@ -297,6 +302,8 @@ export default async function RecrutaDetalhePage({
               <NpsChart briefings={briefings} />
             </section>
           ) : null}
+
+          <RecruitActivitySection events={activity} />
 
           <section className="surface-raised p-5 flex flex-col gap-3">
             <h2 className="label-display text-[11px] text-text-secondary">

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { IconUserPlus } from "@tabler/icons-react";
+import { IconUserPlus, IconDownload } from "@tabler/icons-react";
 import { RecruitStatus } from "@prisma/client";
 import { PageHeader } from "@/components/squad/page-header";
 import { buttonVariants } from "@/components/ui/button";
@@ -104,13 +104,23 @@ export default async function RecrutasPage({
         title={heading}
         subtitle={subtitle}
         actions={
-          <Link
-            href="/recrutas/novo"
-            className={buttonVariants({ variant: "primary", size: "md" })}
-          >
-            <IconUserPlus size={14} aria-hidden />
-            Recrutar novo
-          </Link>
+          <div className="flex items-center gap-2">
+            <a
+              href="/api/export/recruits"
+              className={buttonVariants({ variant: "secondary", size: "md" })}
+              title="Exportar CSV"
+            >
+              <IconDownload size={14} aria-hidden />
+              CSV
+            </a>
+            <Link
+              href="/recrutas/novo"
+              className={buttonVariants({ variant: "primary", size: "md" })}
+            >
+              <IconUserPlus size={14} aria-hidden />
+              Recrutar novo
+            </Link>
+          </div>
         }
       />
 

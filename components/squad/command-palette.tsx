@@ -10,9 +10,49 @@ import {
   IconTarget,
   IconChecks,
   IconBooks,
+  IconCalendar,
+  IconTargetArrow,
+  IconPlus,
 } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
 import { searchEverything, type SearchResult } from "@/lib/actions/search";
+
+const QUICK_ACTIONS: Array<{
+  triggers: string[];
+  label: string;
+  href: string;
+  Icon: typeof IconUserPlus;
+  hint: string;
+}> = [
+  {
+    triggers: ["novo recruta", "recrutar", "alistar", "criar cliente"],
+    label: "Recrutar novo recruta",
+    href: "/recrutas/novo",
+    Icon: IconUserPlus,
+    hint: "Cria ficha de recruta",
+  },
+  {
+    triggers: ["mobilizar", "nova operacao", "nova operação", "criar operacao"],
+    label: "Mobilizar nova operação",
+    href: "/operacoes/nova",
+    Icon: IconTargetArrow,
+    hint: "Vincula recruta a um produto",
+  },
+  {
+    triggers: ["registrar briefing", "novo briefing", "briefing"],
+    label: "Registrar briefing",
+    href: "/briefings/novo",
+    Icon: IconCalendar,
+    hint: "Anota reunião com recruta",
+  },
+  {
+    triggers: ["nova tarefa", "tarefa squad", "criar tarefa"],
+    label: "Nova tarefa do squad",
+    href: "/squad-tasks",
+    Icon: IconPlus,
+    hint: "Tarefa interna do squad",
+  },
+];
 
 const ICON_BY_TYPE = {
   recruta: IconUserPlus,
@@ -92,6 +132,12 @@ export function CommandPaletteTrigger() {
     {},
   );
 
+  const matchingQuickActions = QUICK_ACTIONS.filter((qa) => {
+    if (!query.trim()) return false;
+    const q = query.toLowerCase().trim();
+    return qa.triggers.some((t) => t.includes(q) || q.includes(t));
+  });
+
   return (
     <>
       <button
@@ -146,6 +192,43 @@ export function CommandPaletteTrigger() {
                     ? "Buscando..."
                     : "Nada encontrado por essa busca."}
               </Command.Empty>
+
+              {matchingQuickActions.length > 0 ? (
+                <Command.Group
+                  heading="Ações rápidas"
+                  className="text-[10px] text-bronze label-display px-2 py-1.5"
+                >
+                  {matchingQuickActions.map((qa) => {
+                    const { Icon } = qa;
+                    return (
+                      <Command.Item
+                        key={qa.href}
+                        value={`action-${qa.label}`}
+                        onSelect={() => handleSelect(qa.href)}
+                        className={cn(
+                          "flex items-center gap-3 px-3 py-2 rounded-card cursor-pointer",
+                          "text-text-primary text-[13px]",
+                          "data-[selected=true]:bg-accent/20 data-[selected=true]:text-text-primary",
+                          "hover:bg-surface-deep",
+                        )}
+                      >
+                        <Icon
+                          size={14}
+                          stroke={1.5}
+                          className="text-accent shrink-0"
+                          aria-hidden
+                        />
+                        <div className="flex-1 min-w-0">
+                          <div className="truncate">{qa.label}</div>
+                          <div className="text-text-dim text-[11px] truncate">
+                            {qa.hint}
+                          </div>
+                        </div>
+                      </Command.Item>
+                    );
+                  })}
+                </Command.Group>
+              ) : null}
 
               {Object.entries(grouped).map(([type, items]) => {
                 const Icon =

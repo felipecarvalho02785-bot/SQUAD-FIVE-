@@ -5,7 +5,10 @@ import {
   IconUsersGroup,
   IconBox,
   IconUpload,
+  IconChartArrows,
 } from "@tabler/icons-react";
+import { FunnelChart } from "@/components/charts/funnel-chart";
+import { getProductFunnels } from "@/lib/queries/funnel";
 import { auth } from "@/lib/auth";
 import { PageHeader } from "@/components/squad/page-header";
 import { FeedbackBanner } from "@/components/squad/feedback-banner";
@@ -41,9 +44,10 @@ export default async function QuartelPage({
   const justKey = Array.isArray(sp.just) ? sp.just[0] : sp.just;
   const justMessage = justKey ? JUST_MESSAGES[justKey] : undefined;
 
-  const [products, members] = await Promise.all([
+  const [products, members, funnels] = await Promise.all([
     listProductsForAdmin(),
     listMembers(),
+    getProductFunnels(),
   ]);
 
   return (
@@ -63,6 +67,52 @@ export default async function QuartelPage({
       />
 
       {justMessage ? <FeedbackBanner message={justMessage} /> : null}
+
+      <section className="surface-raised p-5 flex flex-col gap-4">
+        <header className="flex items-center gap-2">
+          <IconChartArrows
+            size={14}
+            className="text-bronze"
+            stroke={1.5}
+            aria-hidden
+          />
+          <h2 className="label-display text-[11px] text-text-primary">
+            Funil de operações ativas por produto
+          </h2>
+        </header>
+        <p className="text-text-secondary text-[12px] -mt-1">
+          Distribuição em tempo real das operações ATIVAs em cada etapa.
+        </p>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          {funnels.map((funnel) => (
+            <article
+              key={funnel.id}
+              className="surface-deep p-4 flex flex-col gap-3"
+            >
+              <header className="flex items-center justify-between gap-2">
+                <h3 className="font-display text-[14px] font-medium text-text-primary">
+                  {funnel.name}
+                </h3>
+                <span className="font-mono text-bronze text-[14px] tabular-nums">
+                  {funnel.total}
+                </span>
+              </header>
+              <FunnelChart
+                stages={funnel.stages.map((s, i) => ({
+                  name: s.name,
+                  count: s.count,
+                  tone:
+                    s.count === 0
+                      ? "warn"
+                      : i === funnel.stages.length - 1
+                        ? "patrol"
+                        : "bronze",
+                }))}
+              />
+            </article>
+          ))}
+        </div>
+      </section>
 
       <section className="surface-raised p-5 flex flex-col gap-4">
         <header className="flex items-center gap-2">

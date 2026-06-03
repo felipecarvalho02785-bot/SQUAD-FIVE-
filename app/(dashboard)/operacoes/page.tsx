@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { OperationStatus } from "@prisma/client";
-import { IconTargetArrow } from "@tabler/icons-react";
+import { IconTargetArrow, IconDownload } from "@tabler/icons-react";
 import { PageHeader } from "@/components/squad/page-header";
 import { HealthBar } from "@/components/squad/health-bar";
 import { FilterChips, type FilterChip } from "@/components/squad/filter-chips";
@@ -126,13 +126,23 @@ export default async function OperacoesPage({
         title="Operações"
         subtitle={subtitle}
         actions={
-          <Link
-            href="/operacoes/nova"
-            className={buttonVariants({ variant: "primary", size: "md" })}
-          >
-            <IconTargetArrow size={14} aria-hidden />
-            Mobilizar operação
-          </Link>
+          <div className="flex items-center gap-2">
+            <a
+              href="/api/export/operations"
+              className={buttonVariants({ variant: "secondary", size: "md" })}
+              title="Exportar CSV"
+            >
+              <IconDownload size={14} aria-hidden />
+              CSV
+            </a>
+            <Link
+              href="/operacoes/nova"
+              className={buttonVariants({ variant: "primary", size: "md" })}
+            >
+              <IconTargetArrow size={14} aria-hidden />
+              Mobilizar operação
+            </Link>
+          </div>
         }
       />
 
