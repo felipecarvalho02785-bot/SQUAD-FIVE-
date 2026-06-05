@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db/prisma";
 import { detectAllGaps } from "@/lib/domain/gap-detector";
+import { syncAllActiveDriveConfigs } from "@/lib/drive/sync";
 import { sendEmail, EMAIL_TEMPLATES } from "@/lib/observability/email";
 import { captureError } from "@/lib/observability/sentry";
 
@@ -66,11 +67,19 @@ export async function GET(req: Request) {
       if (result.ok) emailsSent += 1;
     }
 
+    let driveSync: unknown = null;
+    try {
+      driveSync = await syncAllActiveDriveConfigs();
+    } catch (err) {
+      captureError(err, { source: "cron-daily:drive-sync" });
+    }
+
     return NextResponse.json({
       ok: true,
       detected: detectionResult,
       emailsSent,
       ordersDueTomorrow: ordersDueTomorrow.length,
+      driveSync,
     });
   } catch (err) {
     captureError(err, { source: "cron-daily" });

@@ -5,7 +5,20 @@ import type { UserRole } from "@prisma/client";
 /*
   Config edge-safe do Auth.js v5 (sem PrismaAdapter, para uso no middleware).
   A configuracao completa — com adapter de banco — vive em lib/auth/index.ts.
+
+  Scopes Google:
+  - openid/email/profile: identidade.
+  - drive.readonly: integração Biblioteca <-> Drive (sync de pasta).
+  prompt=consent + access_type=offline garantem que o refresh_token chegue
+  pelo menos uma vez (o Google só envia em consentimentos novos).
 */
+
+const GOOGLE_SCOPES = [
+  "openid",
+  "email",
+  "profile",
+  "https://www.googleapis.com/auth/drive.readonly",
+].join(" ");
 
 const PROTECTED_PREFIXES = [
   "/comando",
@@ -24,7 +37,17 @@ export const authConfig = {
   pages: {
     signIn: "/login",
   },
-  providers: [Google],
+  providers: [
+    Google({
+      authorization: {
+        params: {
+          scope: GOOGLE_SCOPES,
+          access_type: "offline",
+          prompt: "consent",
+        },
+      },
+    }),
+  ],
   callbacks: {
     async signIn({ profile }) {
       const allowedDomain = process.env.AUTH_ALLOWED_DOMAIN;

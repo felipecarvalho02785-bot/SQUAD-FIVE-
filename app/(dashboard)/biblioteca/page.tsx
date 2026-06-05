@@ -6,9 +6,11 @@ import { FeedbackBanner } from "@/components/squad/feedback-banner";
 import { buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/form/input";
 import { LibraryCard } from "@/components/biblioteca/library-card";
+import { DriveSyncCard } from "@/components/biblioteca/drive-sync-card";
 import {
   listLibraryItems,
   countLibraryByCategory,
+  getActiveDriveSyncConfig,
 } from "@/lib/queries/library";
 import { libraryFilterSchema } from "@/lib/schemas/library";
 import {
@@ -58,9 +60,10 @@ export default async function BibliotecaPage({
   const justKey = Array.isArray(sp.just) ? sp.just[0] : sp.just;
   const justMessage = justKey ? JUST_MESSAGES[justKey] : undefined;
 
-  const [items, byCategory] = await Promise.all([
+  const [items, byCategory, driveConfig] = await Promise.all([
     listLibraryItems(filter),
     countLibraryByCategory(),
+    getActiveDriveSyncConfig(),
   ]);
   const total = Object.values(byCategory).reduce((a, b) => a + b, 0);
 
@@ -85,6 +88,22 @@ export default async function BibliotecaPage({
       />
 
       {justMessage ? <FeedbackBanner message={justMessage} /> : null}
+
+      <DriveSyncCard
+        config={
+          driveConfig
+            ? {
+                folderId: driveConfig.folderId,
+                folderName: driveConfig.folderName,
+                folderUrl: driveConfig.folderUrl,
+                lastSyncAt: driveConfig.lastSyncAt,
+                lastError: driveConfig.lastError,
+                itemsSynced: driveConfig.itemsSynced,
+                syncedBy: driveConfig.syncedBy,
+              }
+            : null
+        }
+      />
 
       <div className="flex flex-col gap-3">
         <form

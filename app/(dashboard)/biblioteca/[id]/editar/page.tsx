@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { PageHeader } from "@/components/squad/page-header";
 import { LibraryForm } from "@/components/biblioteca/library-form";
 import { updateLibraryItemAction } from "@/lib/actions/library";
@@ -17,6 +17,9 @@ export default async function EditarLibraryItemPage({
   const { id } = await params;
   const item = await getLibraryItemById(id);
   if (!item) notFound();
+  if (item.source === "DRIVE") {
+    redirect(`/biblioteca/${item.id}`);
+  }
 
   const action = updateLibraryItemAction.bind(null, item.id);
 

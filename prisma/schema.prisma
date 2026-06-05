@@ -87,6 +87,7 @@ model User {
   createdLibraryItems LibraryItem[]   @relation("LibraryAuthor")
   activityEvents      ActivityEvent[] @relation("ActivityActor")
   savedFilters        SavedFilter[]
+  driveSyncs          DriveSyncConfig[] @relation("DriveSyncOwner")
 
   @@map("users")
 }
@@ -303,21 +304,50 @@ enum LibraryCategory {
   OUTRO
 }
 
+enum LibrarySource {
+  MANUAL
+  DRIVE
+}
+
 model LibraryItem {
-  id          String          @id @default(cuid())
-  title       String
-  category    LibraryCategory @default(OUTRO)
-  content     String          @db.Text
-  tags        String[]        @default([])
-  createdById String?         @map("created_by")
-  createdAt   DateTime        @default(now()) @map("created_at")
-  updatedAt   DateTime        @updatedAt @map("updated_at")
+  id              String          @id @default(cuid())
+  title           String
+  category        LibraryCategory @default(OUTRO)
+  content         String          @db.Text
+  tags            String[]        @default([])
+  createdById     String?         @map("created_by")
+  source          LibrarySource   @default(MANUAL)
+  driveFileId     String?         @unique @map("drive_file_id")
+  driveUrl        String?         @map("drive_url")
+  driveMimeType   String?         @map("drive_mime_type")
+  driveModifiedAt DateTime?       @map("drive_modified_at")
+  createdAt       DateTime        @default(now()) @map("created_at")
+  updatedAt       DateTime        @updatedAt @map("updated_at")
 
   createdBy User? @relation("LibraryAuthor", fields: [createdById], references: [id], onDelete: SetNull)
 
   @@index([category])
   @@index([createdAt])
+  @@index([source])
   @@map("library_items")
+}
+
+model DriveSyncConfig {
+  id          String    @id @default(cuid())
+  folderId    String    @map("folder_id")
+  folderName  String?   @map("folder_name")
+  folderUrl   String?   @map("folder_url")
+  syncedById  String    @map("synced_by")
+  isActive    Boolean   @default(true) @map("is_active")
+  lastSyncAt  DateTime? @map("last_sync_at")
+  lastError   String?   @map("last_error") @db.Text
+  itemsSynced Int       @default(0) @map("items_synced")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  syncedBy User @relation("DriveSyncOwner", fields: [syncedById], references: [id], onDelete: Cascade)
+
+  @@map("drive_sync_configs")
 }
 
 enum ActivityType {

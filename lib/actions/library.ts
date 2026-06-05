@@ -78,6 +78,16 @@ export async function updateLibraryItemAction(
   formData: FormData,
 ): Promise<ActionResult> {
   await requireSession();
+  const existing = await prisma.libraryItem.findUnique({
+    where: { id },
+    select: { source: true },
+  });
+  if (existing?.source === "DRIVE") {
+    return {
+      ok: false,
+      error: "Itens sincronizados do Drive nao podem ser editados aqui.",
+    };
+  }
   const parsed = libraryInputSchema.safeParse(parse(formData));
   if (!parsed.success) {
     return {
@@ -104,6 +114,16 @@ export async function deleteLibraryItemAction(
   id: string,
 ): Promise<ActionResult> {
   await requireSession();
+  const existing = await prisma.libraryItem.findUnique({
+    where: { id },
+    select: { source: true },
+  });
+  if (existing?.source === "DRIVE") {
+    return {
+      ok: false,
+      error: "Itens sincronizados do Drive nao podem ser apagados manualmente.",
+    };
+  }
   await prisma.libraryItem.delete({ where: { id } });
   revalidatePath("/biblioteca");
   redirect("/biblioteca?just=deleted");

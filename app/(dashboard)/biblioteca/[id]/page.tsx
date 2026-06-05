@@ -2,7 +2,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
   IconArrowLeft,
+  IconBrandGoogleDrive,
   IconEdit,
+  IconExternalLink,
   IconUser,
 } from "@tabler/icons-react";
 import { PageHeader } from "@/components/squad/page-header";
@@ -81,6 +83,12 @@ export default async function LibraryItemPage({
             >
               {CATEGORY_LABEL[item.category]}
             </span>
+            {item.source === "DRIVE" ? (
+              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-display uppercase tracking-[0.08em] border border-border-default bg-surface-deep text-text-dim">
+                <IconBrandGoogleDrive size={10} stroke={1.5} aria-hidden />
+                Drive
+              </span>
+            ) : null}
             <span className="text-text-dim text-[11px]">
               Atualizado em {formatDateTime(item.updatedAt)}
             </span>
@@ -89,13 +97,26 @@ export default async function LibraryItemPage({
         actions={
           <div className="flex items-center gap-2">
             <CopyButton text={item.content} />
-            <Link
-              href={`/biblioteca/${item.id}/editar`}
-              className={buttonVariants({ variant: "secondary", size: "md" })}
-            >
-              <IconEdit size={14} aria-hidden />
-              Editar
-            </Link>
+            {item.source === "DRIVE" && item.driveUrl ? (
+              <a
+                href={item.driveUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={buttonVariants({ variant: "secondary", size: "md" })}
+              >
+                <IconBrandGoogleDrive size={14} aria-hidden />
+                Abrir no Drive
+                <IconExternalLink size={11} aria-hidden />
+              </a>
+            ) : (
+              <Link
+                href={`/biblioteca/${item.id}/editar`}
+                className={buttonVariants({ variant: "secondary", size: "md" })}
+              >
+                <IconEdit size={14} aria-hidden />
+                Editar
+              </Link>
+            )}
           </div>
         }
       />

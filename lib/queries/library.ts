@@ -8,10 +8,28 @@ const LIBRARY_SELECT = {
   category: true,
   content: true,
   tags: true,
+  source: true,
+  driveUrl: true,
+  driveMimeType: true,
+  driveModifiedAt: true,
   createdAt: true,
   updatedAt: true,
   createdBy: { select: { id: true, name: true, email: true } },
 } satisfies Prisma.LibraryItemSelect;
+
+export async function getActiveDriveSyncConfig() {
+  try {
+    return await prisma.driveSyncConfig.findFirst({
+      where: { isActive: true },
+      include: {
+        syncedBy: { select: { id: true, name: true, email: true } },
+      },
+    });
+  } catch (err) {
+    console.error("[library] getActiveDriveSyncConfig failed:", err);
+    return null;
+  }
+}
 
 export type LibraryItemWithAuthor = Awaited<
   ReturnType<typeof listLibraryItems>

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import {
   IconArrowUpRight,
+  IconBrandGoogleDrive,
   IconUser,
 } from "@tabler/icons-react";
 import type { LibraryItemWithAuthor } from "@/lib/queries/library";
@@ -30,14 +31,25 @@ export function LibraryCard({ item }: LibraryCardProps) {
     >
       <header className="flex items-start justify-between gap-2">
         <div className="flex flex-col gap-1.5 min-w-0">
-          <span
-            className={cn(
-              "self-start inline-flex items-center px-2 py-0.5 rounded text-[10px] font-display uppercase tracking-[0.08em] border",
-              CATEGORY_TONE[item.category],
-            )}
-          >
-            {CATEGORY_LABEL[item.category]}
-          </span>
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span
+              className={cn(
+                "inline-flex items-center px-2 py-0.5 rounded text-[10px] font-display uppercase tracking-[0.08em] border",
+                CATEGORY_TONE[item.category],
+              )}
+            >
+              {CATEGORY_LABEL[item.category]}
+            </span>
+            {item.source === "DRIVE" ? (
+              <span
+                className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-display uppercase tracking-[0.08em] border border-border-default bg-surface-deep text-text-dim"
+                title="Sincronizado do Google Drive"
+              >
+                <IconBrandGoogleDrive size={10} stroke={1.5} aria-hidden />
+                Drive
+              </span>
+            ) : null}
+          </div>
           <h3 className="text-text-primary text-[13px] font-medium truncate group-hover:text-accent-hover transition-colors">
             {item.title}
           </h3>
