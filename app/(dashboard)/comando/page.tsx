@@ -29,11 +29,39 @@ function formatShortDate(date: Date): string {
 }
 
 export default async function ComandoCentralPage() {
-  const [session, snapshot, kpis] = await Promise.all([
+  const [session, snapshot, kpisOrError] = await Promise.all([
     auth(),
     getDashboardSnapshot(),
-    getKpisWithTrends(),
+    getKpisWithTrends().catch(() => null),
   ]);
+
+  const kpis = kpisOrError ?? {
+    tasksCompleted: {
+      label: "Ordens cumpridas",
+      value: 0,
+      previous: 0,
+      sparkline: [],
+    },
+    briefings: {
+      label: "Briefings registrados",
+      value: 0,
+      previous: 0,
+      sparkline: [],
+    },
+    newRecruits: {
+      label: "Novos recrutas",
+      value: 0,
+      previous: 0,
+      sparkline: [],
+    },
+    gapsOpened: {
+      label: "Gaps detectados",
+      value: 0,
+      previous: 0,
+      sparkline: [],
+      reverseTrend: true,
+    },
+  };
 
   const firstName =
     session?.user?.name?.split(" ")[0] ??

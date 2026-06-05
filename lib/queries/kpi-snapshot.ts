@@ -27,9 +27,13 @@ async function countActivityByType(
   start: Date,
   end: Date,
 ): Promise<number> {
-  return prisma.activityEvent.count({
-    where: { type, createdAt: { gte: start, lt: end } },
-  });
+  try {
+    return await prisma.activityEvent.count({
+      where: { type, createdAt: { gte: start, lt: end } },
+    });
+  } catch {
+    return 0;
+  }
 }
 
 async function dailyCountByType(
@@ -37,18 +41,22 @@ async function dailyCountByType(
   days: number = 7,
 ): Promise<number[]> {
   const { start } = dayBoundaries(days);
-  const events = await prisma.activityEvent.findMany({
-    where: { type, createdAt: { gte: start } },
-    select: { createdAt: true },
-  });
+  try {
+    const events = await prisma.activityEvent.findMany({
+      where: { type, createdAt: { gte: start } },
+      select: { createdAt: true },
+    });
 
-  const buckets = new Array(days).fill(0);
-  const startMs = start.getTime();
-  for (const e of events) {
-    const idx = Math.floor((e.createdAt.getTime() - startMs) / MS_DAY);
-    if (idx >= 0 && idx < days) buckets[idx] += 1;
+    const buckets = new Array(days).fill(0);
+    const startMs = start.getTime();
+    for (const e of events) {
+      const idx = Math.floor((e.createdAt.getTime() - startMs) / MS_DAY);
+      if (idx >= 0 && idx < days) buckets[idx] += 1;
+    }
+    return buckets;
+  } catch {
+    return new Array(days).fill(0);
   }
-  return buckets;
 }
 
 export interface KpiSnapshot {

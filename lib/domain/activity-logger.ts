@@ -45,29 +45,41 @@ const ACTIVITY_SELECT = {
 } satisfies Prisma.ActivityEventSelect;
 
 export async function listOperationActivity(operationId: string, limit = 50) {
-  return prisma.activityEvent.findMany({
-    where: { operationId },
-    orderBy: { createdAt: "desc" },
-    take: limit,
-    select: ACTIVITY_SELECT,
-  });
+  try {
+    return await prisma.activityEvent.findMany({
+      where: { operationId },
+      orderBy: { createdAt: "desc" },
+      take: limit,
+      select: ACTIVITY_SELECT,
+    });
+  } catch {
+    return [];
+  }
 }
 
 export async function listRecruitActivity(recruitId: string, limit = 50) {
-  return prisma.activityEvent.findMany({
-    where: { recruitId },
-    orderBy: { createdAt: "desc" },
-    take: limit,
-    select: ACTIVITY_SELECT,
-  });
+  try {
+    return await prisma.activityEvent.findMany({
+      where: { recruitId },
+      orderBy: { createdAt: "desc" },
+      take: limit,
+      select: ACTIVITY_SELECT,
+    });
+  } catch {
+    return [];
+  }
 }
 
 export async function listRecentActivity(limit = 20) {
-  return prisma.activityEvent.findMany({
-    orderBy: { createdAt: "desc" },
-    take: limit,
-    select: ACTIVITY_SELECT,
-  });
+  try {
+    return await prisma.activityEvent.findMany({
+      orderBy: { createdAt: "desc" },
+      take: limit,
+      select: ACTIVITY_SELECT,
+    });
+  } catch {
+    return [];
+  }
 }
 
 export type ActivityEventWithRelations = Awaited<
