@@ -6,6 +6,7 @@ import {
   IconBox,
   IconUpload,
   IconChartArrows,
+  IconDatabase,
 } from "@tabler/icons-react";
 import { FunnelChart } from "@/components/charts/funnel-chart";
 import { getProductFunnels } from "@/lib/queries/funnel";
@@ -56,13 +57,23 @@ export default async function QuartelPage({
         title="Quartel General"
         subtitle="Configurações da operação. Acesso restrito ao comando."
         actions={
-          <Link
-            href="/quartel/importar"
-            className={buttonVariants({ variant: "secondary", size: "md" })}
-          >
-            <IconUpload size={14} aria-hidden />
-            Importar recrutas
-          </Link>
+          <div className="flex items-center gap-2">
+            <a
+              href="/api/admin/backup"
+              className={buttonVariants({ variant: "secondary", size: "md" })}
+              title="Backup JSON completo"
+            >
+              <IconDatabase size={14} aria-hidden />
+              Backup
+            </a>
+            <Link
+              href="/quartel/importar"
+              className={buttonVariants({ variant: "secondary", size: "md" })}
+            >
+              <IconUpload size={14} aria-hidden />
+              Importar recrutas
+            </Link>
+          </div>
         }
       />
 

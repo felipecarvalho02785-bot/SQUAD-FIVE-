@@ -12,7 +12,8 @@ import { KPICard } from "@/components/ui/kpi-card";
 import { EmptyState } from "@/components/squad/empty-state";
 import { getGreeting } from "@/lib/greeting";
 import { getDashboardSnapshot } from "@/lib/queries/dashboard";
-import { getKpisWithTrends } from "@/lib/queries/kpi-snapshot";
+import { getKpisWithTrends, getWeeklyComparison } from "@/lib/queries/kpi-snapshot";
+import { ComparisonSection } from "@/components/squad/comparison-section";
 import { ComandoContent } from "./comando-content";
 
 export const metadata = {
@@ -29,10 +30,11 @@ function formatShortDate(date: Date): string {
 }
 
 export default async function ComandoCentralPage() {
-  const [session, snapshot, kpisOrError] = await Promise.all([
+  const [session, snapshot, kpisOrError, comparisonOrError] = await Promise.all([
     auth(),
     getDashboardSnapshot(),
     getKpisWithTrends().catch(() => null),
+    getWeeklyComparison().catch(() => null),
   ]);
 
   const kpis = kpisOrError ?? {
@@ -159,6 +161,13 @@ export default async function ComandoCentralPage() {
         className="hidden"
         aria-hidden
       />
+
+      {comparisonOrError ? (
+        <ComparisonSection
+          metrics={comparisonOrError.metrics}
+          dayLabels={comparisonOrError.dayLabels}
+        />
+      ) : null}
 
       <ComandoContent
         kpis={snapshot.kpis}

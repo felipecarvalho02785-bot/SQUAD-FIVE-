@@ -25,6 +25,7 @@ import { ActivityLog } from "@/components/operacao/activity-log";
 import { GapSection } from "@/components/operacao/gap-section";
 import { OrderListItem } from "@/components/ordem/order-list-item";
 import { OrderForm } from "@/components/ordem/order-form";
+import { ShareLinkSection } from "@/components/operacao/share-link-section";
 import { getOperationById } from "@/lib/queries/operation";
 import { listSquadMembers } from "@/lib/queries/user";
 import { listOperationActivity } from "@/lib/domain/activity-logger";
@@ -551,6 +552,16 @@ export default async function OperacaoDetalhePage({
               />
             </section>
           ) : null}
+
+          <ShareLinkSection
+            operationId={operation.id}
+            shareToken={
+              (operation as { shareToken?: string | null }).shareToken ?? null
+            }
+            baseUrl={
+              process.env.AUTH_URL ?? "https://squad-five-mu.vercel.app"
+            }
+          />
         </aside>
       </div>
     </div>

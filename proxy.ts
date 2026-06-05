@@ -13,7 +13,7 @@ export default auth;
 
 export const config = {
   matcher: [
-    // Aplica em tudo exceto rotas internas do Next, api/auth e /login.
-    "/((?!api/auth|_next/static|_next/image|favicon.ico|login).*)",
+    // Aplica em tudo exceto rotas internas do Next, api/auth, /login e /share/*
+    "/((?!api/auth|_next/static|_next/image|favicon.ico|login|share).*)",
   ],
 };

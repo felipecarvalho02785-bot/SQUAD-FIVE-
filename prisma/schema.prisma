@@ -163,6 +163,7 @@ model Operation {
   startedAt   DateTime        @default(now()) @map("started_at")
   targetEndAt DateTime?       @map("target_end_at")
   endedAt     DateTime?       @map("ended_at")
+  shareToken  String?         @unique @map("share_token")
 
   recruit        Recruit          @relation(fields: [recruitId], references: [id])
   product        Product          @relation(fields: [productId], references: [id])

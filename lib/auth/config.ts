@@ -18,6 +18,8 @@ const PROTECTED_PREFIXES = [
   "/quartel",
 ];
 
+const PUBLIC_PREFIXES = ["/share"];
+
 export const authConfig = {
   pages: {
     signIn: "/login",
@@ -38,6 +40,10 @@ export const authConfig = {
     authorized({ auth, request }) {
       const isLoggedIn = Boolean(auth?.user);
       const path = request.nextUrl.pathname;
+      const isPublic = PUBLIC_PREFIXES.some(
+        (prefix) => path === prefix || path.startsWith(`${prefix}/`),
+      );
+      if (isPublic) return true;
       const isProtected = PROTECTED_PREFIXES.some(
         (prefix) => path === prefix || path.startsWith(`${prefix}/`),
       );
