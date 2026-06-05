@@ -1,11 +1,12 @@
 import Link from "next/link";
 import { IconUserPlus, IconDownload } from "@tabler/icons-react";
-import { RecruitStatus } from "@prisma/client";
+import { RecruitStatus, SavedFilterScope } from "@prisma/client";
 import { PageHeader } from "@/components/squad/page-header";
 import { buttonVariants } from "@/components/ui/button";
 import { RecruitListCard } from "@/components/recruta/recruit-list-card";
 import { RecruitFilters } from "@/components/recruta/recruit-filters";
 import { FilterChips, type FilterChip } from "@/components/squad/filter-chips";
+import { SavedFilters } from "@/components/squad/saved-filters";
 import { EmptyState } from "@/components/squad/empty-state";
 import {
   listRecruits,
@@ -13,6 +14,7 @@ import {
   type RecruitSort,
 } from "@/lib/queries/recruit";
 import { SortDropdown } from "@/components/squad/sort-dropdown";
+import { listSavedFiltersForUser } from "@/lib/actions/saved-filter";
 import { recruitFilterSchema } from "@/lib/schemas/recruit";
 
 export const metadata = {
@@ -82,9 +84,10 @@ export default async function RecrutasPage({
       ? sortParam
       : "recent";
 
-  const [recrutas, counts] = await Promise.all([
+  const [recrutas, counts, savedFilters] = await Promise.all([
     listRecruits(filter, validSort),
     countRecruitsByStatus(),
+    listSavedFiltersForUser(SavedFilterScope.RECRUITS),
   ]);
 
   const heading =
@@ -141,6 +144,12 @@ export default async function RecrutasPage({
       </div>
 
       <FilterChips chips={buildChips(filter)} />
+
+      <SavedFilters
+        scope={SavedFilterScope.RECRUITS}
+        items={savedFilters}
+        ignoreParams={["sort"]}
+      />
 
       {recrutas.length === 0 ? (
         <EmptyState

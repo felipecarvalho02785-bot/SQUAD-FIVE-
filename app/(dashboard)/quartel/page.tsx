@@ -9,7 +9,11 @@ import {
   IconDatabase,
 } from "@tabler/icons-react";
 import { FunnelChart } from "@/components/charts/funnel-chart";
-import { getProductFunnels } from "@/lib/queries/funnel";
+import { ProductWeeklyComparisonSection } from "@/components/quartel/product-weekly-comparison";
+import {
+  getProductFunnels,
+  getProductWeeklyComparison,
+} from "@/lib/queries/funnel";
 import { auth } from "@/lib/auth";
 import { PageHeader } from "@/components/squad/page-header";
 import { FeedbackBanner } from "@/components/squad/feedback-banner";
@@ -45,10 +49,11 @@ export default async function QuartelPage({
   const justKey = Array.isArray(sp.just) ? sp.just[0] : sp.just;
   const justMessage = justKey ? JUST_MESSAGES[justKey] : undefined;
 
-  const [products, members, funnels] = await Promise.all([
+  const [products, members, funnels, weeklyComparison] = await Promise.all([
     listProductsForAdmin(),
     listMembers(),
     getProductFunnels(),
+    getProductWeeklyComparison().catch(() => []),
   ]);
 
   return (
@@ -124,6 +129,27 @@ export default async function QuartelPage({
           ))}
         </div>
       </section>
+
+      {weeklyComparison.length > 0 ? (
+        <section className="surface-raised p-5 flex flex-col gap-4">
+          <header className="flex items-center gap-2">
+            <IconChartArrows
+              size={14}
+              className="text-bronze"
+              stroke={1.5}
+              aria-hidden
+            />
+            <h2 className="label-display text-[11px] text-text-primary">
+              Comparativo semanal por produto
+            </h2>
+          </header>
+          <p className="text-text-secondary text-[12px] -mt-1">
+            Mobilizações, etapas, briefings e ordens — esta semana vs anterior.
+            Barra inferior cinza = semana passada.
+          </p>
+          <ProductWeeklyComparisonSection products={weeklyComparison} />
+        </section>
+      ) : null}
 
       <section className="surface-raised p-5 flex flex-col gap-4">
         <header className="flex items-center gap-2">

@@ -135,18 +135,19 @@ export function Topbar({
     >
       <Link
         href="/comando"
-        className="flex items-center gap-2.5 shrink-0 group min-h-11"
+        className="flex items-center gap-3 shrink-0 group min-h-11"
         aria-label="Comando Central"
       >
-        <Mascot size={32} useAsset={true} />
-        <div className="hidden sm:flex flex-col leading-none">
-          <span className="font-display uppercase tracking-[0.1em] text-[14px] font-medium text-text-primary group-hover:text-accent-hover transition-colors">
-            SQUAD <span className="text-accent">5</span>
-          </span>
-          <span className="text-[9px] tracking-[0.2em] uppercase text-text-dim mt-0.5">
-            E3 · Sistema Operacional
-          </span>
-        </div>
+        <Mascot size={40} useAsset={true} />
+        <span
+          className={cn(
+            "hidden sm:inline-flex items-baseline gap-1 font-display uppercase",
+            "tracking-[0.14em] text-[20px] font-semibold leading-none",
+            "text-text-primary group-hover:text-accent-hover transition-colors",
+          )}
+        >
+          SQUAD <span className="text-accent text-[22px]">5</span>
+        </span>
       </Link>
 
       <div className="hidden lg:flex flex-1 justify-center">

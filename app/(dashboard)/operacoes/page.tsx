@@ -1,13 +1,15 @@
 import Link from "next/link";
-import { OperationStatus } from "@prisma/client";
+import { OperationStatus, SavedFilterScope } from "@prisma/client";
 import { IconTargetArrow, IconDownload } from "@tabler/icons-react";
 import { PageHeader } from "@/components/squad/page-header";
 import { HealthBar } from "@/components/squad/health-bar";
 import { FilterChips, type FilterChip } from "@/components/squad/filter-chips";
+import { SavedFilters } from "@/components/squad/saved-filters";
 import { EmptyState } from "@/components/squad/empty-state";
 import { buttonVariants } from "@/components/ui/button";
 import { OperationListCard } from "@/components/operacao/operation-list-card";
 import { listOperations, countOperationHealth } from "@/lib/queries/operation";
+import { listSavedFiltersForUser } from "@/lib/actions/saved-filter";
 import { operationFilterSchema } from "@/lib/schemas/operation";
 import { cn } from "@/lib/utils";
 
@@ -110,9 +112,10 @@ export default async function OperacoesPage({
     ? parsed.data
     : { status: "all" as const, health: "all" as const };
 
-  const [operacoes, counts] = await Promise.all([
+  const [operacoes, counts, savedFilters] = await Promise.all([
     listOperations(filter),
     countOperationHealth(),
+    listSavedFiltersForUser(SavedFilterScope.OPERATIONS),
   ]);
 
   const subtitle =
@@ -215,6 +218,11 @@ export default async function OperacoesPage({
         </nav>
 
         <FilterChips chips={buildOperationChips(filter)} />
+
+        <SavedFilters
+          scope={SavedFilterScope.OPERATIONS}
+          items={savedFilters}
+        />
       </div>
 
       {operacoes.length === 0 ? (

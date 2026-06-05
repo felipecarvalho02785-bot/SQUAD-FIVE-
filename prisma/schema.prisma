@@ -86,6 +86,7 @@ model User {
   notifications       Notification[]
   createdLibraryItems LibraryItem[]   @relation("LibraryAuthor")
   activityEvents      ActivityEvent[] @relation("ActivityActor")
+  savedFilters        SavedFilter[]
 
   @@map("users")
 }
@@ -369,4 +370,23 @@ model Notification {
 
   @@index([userId, read, createdAt])
   @@map("notifications")
+}
+
+enum SavedFilterScope {
+  OPERATIONS
+  RECRUITS
+}
+
+model SavedFilter {
+  id        String           @id @default(cuid())
+  userId    String           @map("user_id")
+  scope     SavedFilterScope
+  name      String
+  params    String
+  createdAt DateTime         @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, scope, createdAt])
+  @@map("saved_filters")
 }

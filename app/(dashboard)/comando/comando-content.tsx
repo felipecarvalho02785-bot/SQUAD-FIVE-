@@ -81,7 +81,7 @@ export function ComandoContent({
     <div className="flex flex-col gap-5">
       <div className="flex items-center justify-between">
         <ViewToggle value={view} onChange={setView} />
-        <span className="hidden sm:flex items-center gap-2 text-cream-dim text-[11px]">
+        <span className="hidden sm:flex items-center gap-2 text-text-dim text-[11px]">
           <span className="w-1.5 h-1.5 rounded-full bg-patrol animate-pulse-live" />
           Dados sincronizando ao vivo
         </span>
@@ -161,15 +161,15 @@ function GraficosView({
         <article className="surface-raised p-5 sm:col-span-2 flex flex-col gap-3">
           <header className="flex items-start justify-between">
             <div className="flex flex-col gap-0.5">
-              <h2 className="font-display text-[14px] font-medium text-cream">
+              <h2 className="font-display text-[14px] font-medium text-text-primary">
                 Saúde média
               </h2>
-              <p className="text-cream-dim text-[11px]">
+              <p className="text-text-dim text-[11px]">
                 Score consolidado do squad
               </p>
             </div>
             <span
-              className="w-7 h-7 rounded-md bg-combat/40 border border-tactical text-cream-muted flex items-center justify-center"
+              className="w-7 h-7 rounded-md bg-surface-deep border border-border-default text-text-secondary flex items-center justify-center"
               aria-hidden
             >
               <IconActivity size={14} stroke={1.5} />
@@ -190,15 +190,15 @@ function GraficosView({
         <article className="surface-raised p-5 sm:col-span-3 flex flex-col gap-3">
           <header className="flex items-start justify-between">
             <div className="flex flex-col gap-0.5">
-              <h2 className="font-display text-[14px] font-medium text-cream">
+              <h2 className="font-display text-[14px] font-medium text-text-primary">
                 Top operações
               </h2>
-              <p className="text-cream-dim text-[11px]">
+              <p className="text-text-dim text-[11px]">
                 Maior progresso combinado
               </p>
             </div>
             <span
-              className="w-7 h-7 rounded-md bg-combat/40 border border-tactical text-cream-muted flex items-center justify-center"
+              className="w-7 h-7 rounded-md bg-surface-deep border border-border-default text-text-secondary flex items-center justify-center"
               aria-hidden
             >
               <IconChartBar size={14} stroke={1.5} />
@@ -218,20 +218,20 @@ function GraficosView({
         <header className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <StatusIndicator status="atencao" size="md" />
-            <h2 className="font-display text-[14px] font-medium text-cream">
+            <h2 className="font-display text-[14px] font-medium text-text-primary">
               Operações em atenção
             </h2>
             <span className="font-mono text-[11px] text-bronze">10</span>
           </div>
           <button
             type="button"
-            className="text-[11px] text-cream-dim hover:text-cream transition-colors flex items-center gap-1"
+            className="text-[11px] text-text-dim hover:text-text-primary transition-colors flex items-center gap-1"
           >
             Ver todas <IconArrowUpRight size={12} stroke={1.5} />
           </button>
         </header>
 
-        <p className="text-cream-muted text-[12px] -mt-1">
+        <p className="text-text-secondary text-[12px] -mt-1">
           Distribuição de tasks por operação na semana atual.
         </p>
 
@@ -239,14 +239,14 @@ function GraficosView({
           {topOperacoes.slice(0, 6).map((op) => (
             <div
               key={`mini-${op.id}`}
-              className="flex items-center gap-3 p-2.5 rounded-md bg-combat/40 border border-tactical/40"
+              className="flex items-center gap-3 p-2.5 rounded-md bg-surface-deep border border-border-default/40"
             >
               <span className="font-display text-[18px] text-bronze tabular-nums leading-none">
                 {op.trailing}
               </span>
               <div className="flex-1 min-w-0 flex flex-col gap-1.5">
-                <span className="text-cream text-[12px] truncate">{op.label}</span>
-                <div className="h-1.5 rounded-full bg-combat overflow-hidden ring-1 ring-tactical/30">
+                <span className="text-text-primary text-[12px] truncate">{op.label}</span>
+                <div className="h-1.5 rounded-full bg-surface-base overflow-hidden ring-1 ring-tactical/30">
                   <div
                     className="h-full bar-gradient-warm"
                     style={{ width: `${op.primary}%` }}
@@ -274,7 +274,7 @@ function ListaView({
         <header className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <StatusIndicator status="baixa_iminente" size="md" />
-            <h2 className="label-display text-[11px] text-cream">
+            <h2 className="label-display text-[11px] text-text-primary">
               Baixas iminentes
             </h2>
             <span className="font-mono text-[11px] text-casualty">
@@ -283,14 +283,14 @@ function ListaView({
           </div>
           <button
             type="button"
-            className="text-[11px] text-cream-dim hover:text-cream transition-colors flex items-center gap-1"
+            className="text-[11px] text-text-dim hover:text-text-primary transition-colors flex items-center gap-1"
           >
             Ver todas <IconArrowUpRight size={12} stroke={1.5} />
           </button>
         </header>
 
         {baixas.length === 0 ? (
-          <p className="py-6 text-center text-cream-muted text-[13px]">
+          <p className="py-6 text-center text-text-secondary text-[13px]">
             Setor calmo. Nenhuma operação em risco.
           </p>
         ) : (
@@ -308,12 +308,12 @@ function ListaView({
         <header className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <StatusIndicator status="atencao" size="md" />
-            <h2 className="label-display text-[11px] text-cream">Em atenção</h2>
+            <h2 className="label-display text-[11px] text-text-primary">Em atenção</h2>
             <span className="font-mono text-[11px] text-bronze">{atencao.length}</span>
           </div>
           <button
             type="button"
-            className="text-[11px] text-cream-dim hover:text-cream transition-colors flex items-center gap-1"
+            className="text-[11px] text-text-dim hover:text-text-primary transition-colors flex items-center gap-1"
           >
             Ver todas <IconArrowUpRight size={12} stroke={1.5} />
           </button>
@@ -337,11 +337,11 @@ function BriefingsHojeCard({ items }: { items: MockBriefing[] }) {
       <header className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <IconCalendar size={14} className="text-bronze" stroke={1.5} />
-          <h2 className="label-display text-[11px] text-cream">
+          <h2 className="label-display text-[11px] text-text-primary">
             Briefings hoje
           </h2>
         </div>
-        <span className="font-mono text-[11px] text-cream-muted">
+        <span className="font-mono text-[11px] text-text-secondary">
           {items.length}
         </span>
       </header>
@@ -350,14 +350,14 @@ function BriefingsHojeCard({ items }: { items: MockBriefing[] }) {
         {items.map((b) => (
           <li
             key={b.id}
-            className="flex items-center gap-3 py-2 border-b border-patrol/30 last:border-0"
+            className="flex items-center gap-3 py-2 border-b border-border-default/40 last:border-0"
           >
             <span className="font-mono text-[12px] text-bronze tabular-nums shrink-0">
               {b.time}
             </span>
             <div className="flex-1 min-w-0">
-              <p className="text-cream text-[12px] truncate">{b.recruit}</p>
-              <p className="text-cream-muted text-[10px]">{b.duration} min</p>
+              <p className="text-text-primary text-[12px] truncate">{b.recruit}</p>
+              <p className="text-text-secondary text-[10px]">{b.duration} min</p>
             </div>
             <StatusIndicator status="em_campo" size="mini" />
           </li>
@@ -384,31 +384,31 @@ function ResumoSemanalCard({
     <section className="surface-raised p-4 flex flex-col gap-4">
       <header className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <IconChartBar size={14} className="text-cream-muted" stroke={1.5} />
-          <h2 className="label-display text-[11px] text-cream">
+          <IconChartBar size={14} className="text-text-secondary" stroke={1.5} />
+          <h2 className="label-display text-[11px] text-text-primary">
             Relatório semanal
           </h2>
         </div>
         <button
           type="button"
-          className="font-display uppercase tracking-[0.05em] text-[10px] text-bronze hover:text-cream transition-colors"
+          className="font-display uppercase tracking-[0.05em] text-[10px] text-bronze hover:text-text-primary transition-colors"
         >
           Gerar agora
         </button>
       </header>
 
-      <p className="text-cream-muted text-[11px] -mt-2">Semana de {weekRange}</p>
+      <p className="text-text-secondary text-[11px] -mt-2">Semana de {weekRange}</p>
 
       <ProductBreakdown items={produtos} />
 
-      <div className="flex flex-col gap-1 pt-3 border-t border-tactical/40">
+      <div className="flex flex-col gap-1 pt-3 border-t border-border-default/40">
         <div className="flex items-baseline justify-between">
-          <span className="text-cream text-[11px]">Tasks gerais</span>
-          <span className="font-mono text-cream-muted text-[11px] tabular-nums">
+          <span className="text-text-primary text-[11px]">Tasks gerais</span>
+          <span className="font-mono text-text-secondary text-[11px] tabular-nums">
             {tasksDone}/{tasksTotal} · {tasksPct}%
           </span>
         </div>
-        <div className="h-1.5 rounded-full bg-combat/60 overflow-hidden ring-1 ring-tactical/40">
+        <div className="h-1.5 rounded-full bg-surface-deep overflow-hidden ring-1 ring-tactical/40">
           <div
             className="h-full bar-gradient-warm"
             style={{ width: `${tasksPct}%` }}
@@ -416,8 +416,8 @@ function ResumoSemanalCard({
         </div>
       </div>
 
-      <div className="pt-3 border-t border-tactical/40 flex items-center justify-between">
-        <span className="label-display text-[10px] text-cream-muted">
+      <div className="pt-3 border-t border-border-default/40 flex items-center justify-between">
+        <span className="label-display text-[10px] text-text-secondary">
           Galeria de status
         </span>
       </div>
