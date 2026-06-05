@@ -34,28 +34,43 @@ export async function listLibraryItems(
     ];
   }
 
-  return prisma.libraryItem.findMany({
-    where,
-    orderBy: [{ updatedAt: "desc" }],
-    select: LIBRARY_SELECT,
-  });
+  try {
+    return await prisma.libraryItem.findMany({
+      where,
+      orderBy: [{ updatedAt: "desc" }],
+      select: LIBRARY_SELECT,
+    });
+  } catch (err) {
+    console.error("[library] listLibraryItems failed:", err);
+    return [];
+  }
 }
 
 export async function getLibraryItemById(id: string) {
-  return prisma.libraryItem.findUnique({
-    where: { id },
-    select: LIBRARY_SELECT,
-  });
+  try {
+    return await prisma.libraryItem.findUnique({
+      where: { id },
+      select: LIBRARY_SELECT,
+    });
+  } catch (err) {
+    console.error("[library] getLibraryItemById failed:", err);
+    return null;
+  }
 }
 
 export async function countLibraryByCategory() {
-  const grouped = await prisma.libraryItem.groupBy({
-    by: ["category"],
-    _count: { _all: true },
-  });
-  const map: Record<string, number> = {};
-  for (const row of grouped) {
-    map[row.category] = row._count._all;
+  try {
+    const grouped = await prisma.libraryItem.groupBy({
+      by: ["category"],
+      _count: { _all: true },
+    });
+    const map: Record<string, number> = {};
+    for (const row of grouped) {
+      map[row.category] = row._count._all;
+    }
+    return map;
+  } catch (err) {
+    console.error("[library] countLibraryByCategory failed:", err);
+    return {} as Record<string, number>;
   }
-  return map;
 }
